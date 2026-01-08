@@ -1,0 +1,27 @@
+MNINonLinear
+    fsaverage_LR32k
+        {sub}.{hemi}.atlasroi.32k_fs_LR.shape.gii (roi)
+        {sub}.{hemi}.white.32k_fs_LR.surf.gii (seed)
+    xfms
+        acpc_dc2standard.nii.gz (diff2std)
+        standard2acpc_dc.nii.gz (std2diff)
+    Results
+        Tractography
+            CIFTI_STRUCTURE_ACCUMBENS_LEFT.nii.gz (add_seed1)
+            CIFTI_STRUCTURE_ACCUMBENS_RIGHT.nii.gz (add_seed2)
+            CIFTI_STRUCTURE_AMYGDALA_LEFT.nii.gz (add_seed3)
+            CIFTI_STRUCTURE_AMYGDALA_RIGHT.nii.gz (add_seed4)
+            CIFTI_STRUCTURE_CAUDATE_LEFT.nii.gz (add_seed5)
+            CIFTI_STRUCTURE_CAUDATE_RIGHT.nii.gz (add_seed6)
+            CIFTI_STRUCTURE_HIPPOCAMPUS_LEFT.nii.gz (add_seed7)
+            CIFTI_STRUCTURE_HIPPOCAMPUS_RIGHT.nii.gz (add_seed8)
+            CIFTI_STRUCTURE_PALLIDUM_LEFT.nii.gz (add_seed9)
+            CIFTI_STRUCTURE_PALLIDUM_RIGHT.nii.gz (add_seed10)
+            CIFTI_STRUCTURE_PUTAMEN_LEFT.nii.gz (add_seed11)
+            CIFTI_STRUCTURE_PUTAMEN_RIGHT.nii.gz (add_seed12)
+            CIFTI_STRUCTURE_THALAMUS_LEFT.nii.gz (add_seed13)
+            CIFTI_STRUCTURE_THALAMUS_RIGHT.nii.gz (add_seed14)
+            CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_LEFT.nii.gz  (add_seed15)
+            CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_RIGHT.nii.gz (add_seed16)
+T1w
+    Diffusion.bedpostX (bedpostX)
