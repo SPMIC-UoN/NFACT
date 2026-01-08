@@ -1,6 +1,7 @@
 import subprocess
 import os
 from NFACT.base.utils import error_and_exit
+from NFACT.preprocess.nfactpp_functions import filetree_get_files
 
 
 def seeds_to_ascii(surfin: str, roi: str, surfout: str) -> None:
@@ -49,7 +50,7 @@ def seeds_to_ascii(surfin: str, roi: str, surfout: str) -> None:
         )
 
 
-def downsample_target2(
+def downsample_volume(
     target_img: str,
     output_dir: str,
     resolution: str,
@@ -109,6 +110,30 @@ def downsample_target2(
         error_and_exit(
             False, f"FSL FLIRT failure due to {run.stderr}. Unable to build target2"
         )
+
+
+def wb_cmd(command: list) -> None:
+    """
+    Wrapper function around workbench
+
+    Parameters
+    ----------
+    command: list
+        workbench command
+
+    Returns
+    -------
+    None
+    """
+    command.insert(0, "wb_command")
+    try:
+        run = subprocess.run(command, capture_output=True)
+    except subprocess.CalledProcessError as error:
+        error_and_exit(False, f"Error in calling Workbench: {error}")
+    except KeyboardInterrupt:
+        run.kill()
+    if run.returncode != 0:
+        error_and_exit(False, f"Workbench failed due to {run.stderr}.")
 
 
 def fslmaths_cmd(command: list) -> None:
@@ -244,3 +269,109 @@ def binarise_target2(target2_path: str) -> None:
     """
     fslmaths_cmd([target2_path, "-thr", "1.0", target2_path])
     fslmaths_cmd([target2_path, "-bin", target2_path])
+
+
+def create_sphere(seed_directory: str, nvertx: int) -> None:
+    """
+    Function to create sphere for downsampling
+
+    Parameters
+    -----------
+    seed_directory: str
+        directory where seeds are
+    nvertx: int
+        numb of vertexs
+
+    Returns
+    -------
+    None
+    """
+
+    wb_cmd(
+        [
+            "-surface-create-sphere",
+            f"{nvertx}",
+            os.path.join(seed_directory, "R.surf.gii"),
+        ]
+    )
+    wb_cmd(
+        [
+            "-surface-flip-lr",
+            os.path.join(seed_directory, "R.surf.gii"),
+            os.path.join(seed_directory, "L.surf.gii"),
+        ]
+    )
+    wb_cmd(
+        ["-set-structure", os.path.join(seed_directory, "R.surf.gii"), "CORTEX_RIGHT"]
+    )
+    wb_cmd(
+        ["-set-structure", os.path.join(seed_directory, "L.surf.gii"), "CORTEX_LEFT"]
+    )
+
+
+def downsample_roi(
+    atlas_roi: str,
+    high_res_sphere: str,
+    low_res_sphere: str,
+    side: str,
+    seed_directory: str,
+) -> None:
+    wb_cmd(
+        "-metric-resample",
+        atlas_roi,
+        high_res_sphere,
+        low_res_sphere,
+        "BARYCENTRIC",
+        os.path.join(seed_directory, f"{side}.atlasroi.resampled_fs_LR.shape.gii"),
+    )
+    wb_cmd(
+        "-metric-math",
+        "round(m)",
+        os.path.join(seed_directory, f"{side}.atlasroi.resampled_fs_LR.shape.gii"),
+        "-var",
+        "m",
+        os.path.join(seed_directory, f"{side}.atlasroi.resampled_fs_LR.shape.gii"),
+    )
+
+
+def downsample_suface(
+    surface: str,
+    high_res_sphere: str,
+    low_res_sphere: str,
+    side: str,
+    seed_directory: str,
+) -> None:
+    wb_cmd(
+        "-surface-resample",
+        surface,
+        high_res_sphere,
+        low_res_sphere,
+        "BARYCENTRIC",
+        os.path.join(seed_directory, f"{side}.atlasroi.resampled_fs_LR.shape.gii"),
+    )
+
+
+def downsample_surface_seed(
+    surface: str,
+    atlas_roi: str,
+    high_res_sphere: str,
+    low_res_sphere: str,
+    side: str,
+    seed_directory: str,
+    nvertx: int,
+) -> None:
+    create_sphere(seed_directory, nvertx)
+    downsample_roi(atlas_roi, high_res_sphere, low_res_sphere, side, seed_directory)
+    downsample_suface(surface, high_res_sphere, low_res_sphere, side, seed_directory)
+
+
+def downsampling(
+    seeds,
+    rois,
+    seed_directory,
+    filetree,
+):
+    for seed_location in seeds:
+        if "gii":
+            highres = filetree_get_files(filetree, "")
+            downsample_surface_seed()

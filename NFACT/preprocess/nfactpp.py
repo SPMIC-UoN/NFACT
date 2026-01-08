@@ -18,7 +18,7 @@ from NFACT.preprocess.probtrackx_functions import (
 from NFACT.preprocess.img_processing import (
     clean_target2,
     binarise_target2,
-    downsample_target2,
+    downsample_volume,
     seeds_to_ascii,
 )
 from NFACT.base.utils import colours, error_and_exit
@@ -130,7 +130,7 @@ def target_generation(arg: dict, nfactpp_diretory: str, col: dict) -> None:
         shutil.copy2(arg["seedref"], os.path.join(nfactpp_diretory, "target2.nii.gz"))
 
     target_2_ref = os.path.join(nfactpp_diretory, "target2")
-    downsample_target2(
+    downsample_volume(
         target_2_ref,
         os.path.join(nfactpp_diretory, "target2"),
         arg["mm_res"],
@@ -191,6 +191,9 @@ def process_subject(sub: str, arg: dict, col: dict) -> list:
     nfactpp_diretory = os.path.join(arg["outdir"], "nfact_pp", sub_id)
     roi = get_file(arg["roi"], sub, arg["absolute"]) if arg["surface"] else False
     setup_subject_directory(nfactpp_diretory, seed, roi)
+    if arg["downsample"]:
+        print(f"\n{col['pink']}Downsampling seeds:{col['reset']}")
+
     create_files_for_decomp(nfactpp_diretory, seed, roi)
 
     if arg["surface"]:

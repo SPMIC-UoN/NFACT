@@ -2,6 +2,7 @@ MNINonLinear
     fsaverage_LR32k
         {sub}.{hemi}.atlasroi.32k_fs_LR.shape.gii (roi)
         {sub}.{hemi}.white.32k_fs_LR.surf.gii (seed)
+        {sub}.${hemi}.sphere.32k_fs_LR.surf.gii (sphere)
     xfms
         acpc_dc2standard.nii.gz (diff2std)
         standard2acpc_dc.nii.gz (std2diff)
