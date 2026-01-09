@@ -119,10 +119,19 @@ def process_filetree_args(arg: dict, sub: str) -> dict:
         arguments
     """
     del arg["seed"]
-    del arg["roi"]
-    arg["seed"] = [
-        filetree_get_files(arg["file_tree"], sub, hemi, "seed") for hemi in ["L", "R"]
-    ]
+    try:
+        del arg["roi"]
+    except KeyError:
+        pass
+
+    arg["seed"] = list(
+        dict.fromkeys(
+            [
+                filetree_get_files(arg["file_tree"], sub, hemi, "seed")
+                for hemi in ["L", "R"]
+            ]
+        )
+    )
 
     if "add_seed1" in arg["file_tree"].template_keys():
         arg["seed"] = arg["seed"] + get_additional_seeds(arg["file_tree"], sub)

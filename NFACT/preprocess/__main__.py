@@ -58,10 +58,16 @@ def nfact_pp_main(arg: dict = None):
             "Unclear how to process inputs. Please provide either --absolute or --file_tree ",
         )
 
-    if arg["downsample"] and not arg["file_tree"]:
-        error_and_exit(
-            False, "Downsampling currently only supported with a given filetree."
-        )
+    if arg["downsample"]:
+        if not arg["file_tree"]:
+            error_and_exit(
+                False, "Downsampling currently only supported with a given filetree."
+            )
+        if type(arg["stop"]) is list:
+            print(
+                f"{col['red']}WARNING. Make Sure wtstop and stop files are in the same resolution. NFACT does not do this for you {col['reset']}"
+            )
+
     # Error handle if FSL not installed or loaded
     check_fsl_is_installed()
 

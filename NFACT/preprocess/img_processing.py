@@ -425,8 +425,8 @@ def downsample_surface_seed(
 
     create_sphere(seed_directory, nvertx)
     low_res_sphere = os.path.join(seed_directory, f"{side}.surf.gii")
-    downsample_roi(atlas_roi, high_res_sphere, low_res_sphere, side, seed_directory)
-    downsample_suface(surface, high_res_sphere, low_res_sphere, side, seed_directory)
+    downsample_roi(atlas_roi, high_res_sphere, low_res_sphere, seed_directory)
+    downsample_suface(surface, high_res_sphere, low_res_sphere, seed_directory)
 
 
 def downsampling(
@@ -462,6 +462,10 @@ def downsampling(
     -------
     None
     """
+
+    if not rois:
+        rois = range(len(seeds))
+
     for seed, roi in product(seeds, rois):
         if check_seeds_surfaces([seed]):
             side = (
@@ -485,7 +489,7 @@ def downsampling(
             except Exception as e:
                 error_and_exit(
                     False,
-                    f"Unable to find sphere in file structure due to {e}. \n Unable to downsample",
+                    f"Unable to find sphere in file structure due to {e}.\nUnable to downsample",
                 )
             downsample_surface_seed(seed, roi, highres, side, seed_directory, nvertx)
         else:
