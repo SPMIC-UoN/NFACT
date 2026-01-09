@@ -1,5 +1,5 @@
 Overview
----------
+=========
 
 NFACT config can create:
 1. nfact_config.pipeline overview. This config JSON file is used in the nfact pipeline to have greater control over parameters.  
@@ -9,7 +9,7 @@ NFACT config can create:
 Additionally NFACT config can zip the fdt_matrix.dot files in the nfact_pp directory to save on space.
 
 Pipeline configuration file
-----------------------------
+===========================
 
 This is the config file for the nfact pipeline. 
 Everything that says required must be given. Boolean arguments (true & false) must be given in lowercase not in strings
@@ -87,7 +87,7 @@ Please check the individual modules for further details on arguments.
   }
 
 Decomposition configuration file
---------------------------------
+================================
 NFACT does its decomposition using sckit-learn's NMF (https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.NMF.html) and FastICA (https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.FastICA.html).
 Any of the hyperparameters of these functions can be altered by changing the values in the JSON file.
 
@@ -121,7 +121,7 @@ Any of the hyperparameters of these functions can be altered by changing the val
   }
 
 Subject lists
---------------
+==============
 
 NFACT config will attempt to given a directory work out and write to a file all the subjects in that file. Though nfact will try and filter out 
 folders that aren't subjects, it isn't perfect so please check the subject list.
@@ -135,7 +135,7 @@ if will get the subjects from those files.
     nfact_config -s /path/to/subs/dir
 
 Zipping fdt matrix2
---------------------
+====================
 The main output from NFACT Pre-processing is the fdt_matrix2.dot file which can be very large. nfact_config is able to zip this file into a lz4 file to significantly save on space.
 NFACT is able to read the zipped files, however it may add to processing time. 
 
@@ -144,7 +144,7 @@ To zip files::
   nfact_config -z /path/to/nfact_pp
 
 Usage
-------
+=====
 
 .. code-block:: text
     

@@ -1,6 +1,6 @@
 
 Inputs
--------------
+======
 
 Required before running NFACT PP:
     - Crossing-fibre diffusion modelled data (bedpostX)
@@ -35,13 +35,14 @@ Optional NFACT_PP inputs:
 
 
 Input folder
-"""""""""""""""""""
+------------
+
 
 NFACT pp can be used in a folder agnostic way by providing the paths to seeds/bedpostX/target inside a subject folder (i.e --seeds seeds/amygdala.nii.gz).
 However, NFACT pp does have an  --absolute option which will treat the seeds (and rois) as absolute paths. This way one set of seeds and rois can be passed to all subjects
 
 Filetrees
-^^^^^^^^^^^^ 
+^^^^^^^^^^
 
 nfact_pp can accept filetrees via the --file_tree command. The filetree has specific paths for seeds/rois/bedpostx etc in it so that these do not need to be specified when calling nfact_pp. For example:  
 
@@ -70,13 +71,69 @@ Filetree labels:
   - ``(add_seed1)``, ``(add_seed2)``: etc additional seeds and can have as many as you want, as long as they have a a number suffix at the end. This is used to add cifti structures/subcortical volumes 
   - ``(wtstop1)``, ``(wtstop2)``: etc wtstop files. Again can have as many you want as long as they have a number suffix
   - ``(stop1)``, ``(stop2)``, etc: Stop files. Same as approach as wtstop and add_seed
+  - ``(sphere)``: Path to high resolution sphere needed for downsampling surfaces.
 
 
 Please see https://open.win.ox.ac.uk/pages/fsl/file-tree/index.html for further details on filetrees.
 
+Example file tree
+""""""""""""""""""
+
+Below is the HCP filetree for cifti.
+
+.. code-block:: text
+
+  MNINonLinear
+    fsaverage_LR32k
+        {sub}.{hemi}.atlasroi.32k_fs_LR.shape.gii (roi)
+        {sub}.{hemi}.white.32k_fs_LR.surf.gii (seed)
+        {sub}.{hemi}.sphere.32k_fs_LR.surf.gii (sphere)
+    xfms
+        acpc_dc2standard.nii.gz (diff2std)
+        standard2acpc_dc.nii.gz (std2diff)
+    Results
+        Tractography
+            CIFTI_STRUCTURE_ACCUMBENS_LEFT.nii.gz (add_seed1)
+            CIFTI_STRUCTURE_ACCUMBENS_RIGHT.nii.gz (add_seed2)
+            CIFTI_STRUCTURE_AMYGDALA_LEFT.nii.gz (add_seed3)
+            CIFTI_STRUCTURE_AMYGDALA_RIGHT.nii.gz (add_seed4)
+            CIFTI_STRUCTURE_CAUDATE_LEFT.nii.gz (add_seed5)
+            CIFTI_STRUCTURE_CAUDATE_RIGHT.nii.gz (add_seed6)
+            CIFTI_STRUCTURE_HIPPOCAMPUS_LEFT.nii.gz (add_seed7)
+            CIFTI_STRUCTURE_HIPPOCAMPUS_RIGHT.nii.gz (add_seed8)
+            CIFTI_STRUCTURE_PALLIDUM_LEFT.nii.gz (add_seed9)
+            CIFTI_STRUCTURE_PALLIDUM_RIGHT.nii.gz (add_seed10)
+            CIFTI_STRUCTURE_PUTAMEN_LEFT.nii.gz (add_seed11)
+            CIFTI_STRUCTURE_PUTAMEN_RIGHT.nii.gz (add_seed12)
+            CIFTI_STRUCTURE_THALAMUS_LEFT.nii.gz (add_seed13)
+            CIFTI_STRUCTURE_THALAMUS_RIGHT.nii.gz (add_seed14)
+            CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_LEFT.nii.gz  (add_seed15)
+            CIFTI_STRUCTURE_DIENCEPHALON_VENTRAL_RIGHT.nii.gz (add_seed16)
+            CIFTI_STRUCTURE_ACCUMBENS_LEFT.nii.gz (wtstop1)
+            CIFTI_STRUCTURE_ACCUMBENS_RIGHT.nii.gz (wtstop2)
+            CIFTI_STRUCTURE_AMYGDALA_LEFT.nii.gz (wtstop3)
+            CIFTI_STRUCTURE_AMYGDALA_RIGHT.nii.gz (wtstop4)
+            CIFTI_STRUCTURE_CAUDATE_LEFT.nii.gz (wtstop5)
+            CIFTI_STRUCTURE_CAUDATE_RIGHT.nii.gz (wtstop6)
+            CIFTI_STRUCTURE_CEREBELLUM_LEFT.nii.gz (wtstop7)
+            CIFTI_STRUCTURE_CEREBELLUM_RIGHT.nii.gz (wtstop8)
+            CIFTI_STRUCTURE_HIPPOCAMPUS_LEFT.nii.gz (wtstop9)
+            CIFTI_STRUCTURE_HIPPOCAMPUS_RIGHT.nii.gz (wtstop10)
+            CIFTI_STRUCTURE_PALLIDUM_LEFT.nii.gz (wtstop11)
+            CIFTI_STRUCTURE_PALLIDUM_RIGHT.nii.gz (wtstop12)
+            CIFTI_STRUCTURE_PUTAMEN_LEFT.nii.gz (wtstop13)
+            CIFTI_STRUCTURE_PUTAMEN_RIGHT.nii.gz (wtstop14)
+            CIFTI_STRUCTURE_THALAMUS_LEFT.nii.gz (wtstop15)
+            CIFTI_STRUCTURE_THALAMUS_RIGHT.nii.gz (wtstop16)
+            pial.L.asc (stop1)
+            pial.R.asc (stop2)
+            white.L.asc (wtstop17)
+            white.R.asc (wtstop18)
+  T1w
+      Diffusion.bedpostX (bedpostX)
 
 CIFTI support
--------------
+==============
 
 NFACT can save files as cifti dscalars. However, seeds must be in the following order: left_hemisphere.gii (complusory), right hemisphere.nii (complusory), follwed by optional nifti files as subcortical structures (can also have no subcortical files)
 
@@ -143,7 +200,7 @@ Examples are:
 
 
 HPC clusters
-------------
+==============
 NFACT can directly submit jobs to high performance computing enviorments and monitor queues to let you know when they are finished. 
 Cluster arguments require ``--cluster`` and a queue to submit to via ``--cluster_qos``. 
 This will make NFACT search for a HPC cluster enviorment and the queue to check that NFACT can submit to the cluster. 
@@ -151,15 +208,17 @@ NFACT by default allocates time and ram to the job, however, these may need to b
 
 
 Usage
-------
+======
 
 
 .. code-block:: text
+
   nfact_pp [-h] [-hh] [-O] [-l LIST_OF_SUBJECTS] [-o OUTDIR] [-G] [-D] 
   [-vx VERTEX] [-vl VOXEL] [-f FILE_TREE] [-s SEED [SEED ...]] [-w WARPS [WARPS ...]] 
-  [-b BPX_PATH] [-r ROI [ROI ...]] [-sr SEEDREF] [-t TARGET2] [-ns NSAMPLES] [-mm MM_RES] 
-  [-p PTX_OPTIONS] [-e EXCLUSION] [-S [STOP ...]] [-A] [-F] [-n N_CORES] [-C] 
-  [-cq CLUSTER_QUEUE] [-cr CLUSTER_RAM] [-ct CLUSTER_TIME] [-cqos CLUSTER_QOS]
+  [-b BPX_PATH] [-r ROI [ROI ...]] [-sr SEEDREF] [-t TARGET2] [-ns NSAMPLES] 
+  [-mm MM_RES] [-p PTX_OPTIONS] [-e EXCLUSION] [-S [STOP ...]] [-A] [-F] 
+  [-n N_CORES] [-C] [-cq CLUSTER_QUEUE] [-cr CLUSTER_RAM] [-ct CLUSTER_TIME] 
+  [-cqos CLUSTER_QOS]
  
    
 
@@ -176,11 +235,19 @@ General options:
   -G, --gpu 
     To use the GPU version of probtrackx2.
 
-Set Up Arguments:
+Set Up options:
   -l, --list_of_subjects 
     Filepath to a list of subjects
   -o, --outdir 
     Path to output directory
+
+Downsample options:
+  -D, --downsample 
+    Should the seeds be downsampled. Sufaces need workbench installed to work. Default is False
+  -vx, --vertex 
+    Value to downsample vertexes in a single suface seed to. Default is 10,000.
+  -vl, --voxel 
+    Value to downsample voxels in volume seeds to. Default is 3mm.
 
 Filetree option:
   -f, --file_tree 
@@ -211,14 +278,14 @@ Tractography options:
     Use wtstop and stop in the tractography. Takes an absolute file path to a json file containing stop and wtstop masks, JSON keys must be stopping_mask and wtstop_mask. Argument can be used with the --filetree, in that case no json file is needed.
   -A, --absolute 
     Treat seeds and rois as absolute paths, providing one set of seeds and rois for tractography across all subjects.
-  -D, --dont_save_fdt_img 
+  -F, --dont_save_fdt_img 
     Don't save the fdt path as a nifti file. This is useful to save space.
 
-Parallel Processing arguments:
+Parallel Processing option:
   -n N_CORES, --n_cores 
     If should parallel process locally and with how many cores. This parallelizes the number of subjects. If n_cores exceeds subjects nfact_pp sets this argument to be the number of subjects. If nfact_pp is being used on one subject then this may slow down processing.
 
-Cluster Arguments:
+Cluster options:
   -C, --cluster 
     Use cluster enviornment
   -cq, --queue 

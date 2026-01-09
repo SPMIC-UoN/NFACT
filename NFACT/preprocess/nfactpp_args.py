@@ -42,7 +42,7 @@ def nfact_pp_args() -> dict:
     )
 
     downsample_input = base_args.add_argument_group(
-        f"{col['lav']}Downsample option{col['reset']}"
+        f"{col['lav']}Downsample options{col['reset']}"
     )
     downsample_input.add_argument(
         "-D",
@@ -58,14 +58,14 @@ def nfact_pp_args() -> dict:
         "--vertex",
         dest="vertex",
         default=10000,
-        help="Value to downsample vertex in suface seeds to",
+        help="Value to downsample vertexes in a single suface seed to. Default is 10,000.",
     )
     downsample_input.add_argument(
         "-vl",
         "--voxel",
         dest="voxel",
         default=3,
-        help="Value to downsample voxels in volume seeds to",
+        help="Value to downsample voxels in volume seeds to. Default is 3mm.",
     )
     file_tree_input = base_args.add_argument_group(
         f"{col['plum']}Filetree option{col['reset']}"

@@ -1,20 +1,20 @@
 Overview
----------
+========
 This module creates either component loadings or statsmaps of merged components. 
 Most of the output is needed after doing dual regression, however it can created statsmaps of group level components.
 
 Component loadings
-------------------
+==================
 
 This calculates loadings between individual subjects dual regression output and the group level components. 
 Each loading is a pearson R of how similar an individual component is to the group level component.
 
 Output
-""""""
+-------
 Output is a csv file or a npy file of subject by component. 
 
 Usage
-"""""
+-------
 .. code-block:: text
     
     nfact_stats loadings [-h] [-O] [-l LIST_OF_SUBJECTS] 
@@ -47,7 +47,7 @@ Stats args:
 
 
 Statsmap 
---------
+========
 
 This creates statistical maps to be used in PALM or Randomise. 
 The statistical maps are 3D niftis (white matter) and ciftis (grey matter) of combined combined components. 
@@ -57,7 +57,7 @@ If it is done on a subject level then output is a 4D image with subject as the 4
 **please note** statsmap can currently only accept ciftis for the grey matter.
 
 Usage
-""""""
+-------
 
 .. code-block:: text
 
@@ -70,13 +70,13 @@ General options:
   -O, --overwrite 
     Overwrites previous file structure
 
-Set Up Arguments:
+Set Up options:
   -l, --list_of_subjects 
     Filepath to a list of subjects
   -o, --outdir 
     Path to output directory
 
-Decomp args:
+Decomp options:
   -d, --dim 
     Number of dimensions/components that was used to generate nfact_decomp image
   -n, --nfact_folder 
@@ -84,7 +84,7 @@ Decomp args:
   -a, --algo 
     Which decomposition algorithm. Options are: NMF (default), or ICA. This is case insensitive
 
-Statsmap args:
+Statsmap options:
   -c, --components 
     Components to merge, Can accept any number
   -m, --map_name 

@@ -1,5 +1,5 @@
 Overview
----------
+=========
 
 This pipleine runs pre-processing, group level decomposition, quality control and dual regression on data ready for processing.
 It is fully customisable by the `configuration file <nfact_config_details.html#pipeline-configuration-filet>`_ or can be run using command line arguments.
@@ -8,7 +8,7 @@ Please see :doc:`nfact_pp`, :doc:`nfact_decomp`, :doc:`nfact_Qc` and :doc:`nfact
 
 
 Usage
-------
+======
 
 .. code-block:: text
 
@@ -71,7 +71,7 @@ nfact_Qc inputs:
 
 
 Example Usage
-"""""""""""""""""""
+-------------
 
 From command line::
 

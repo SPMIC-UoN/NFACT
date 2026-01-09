@@ -21,7 +21,7 @@ def cluster_args(base_args: object, col: dict) -> None:
         variables aren't unassigned.
     """
     cluster_options = base_args.add_argument_group(
-        f"{col['amethyst']}Cluster Arguments{col['reset']}"
+        f"{col['amethyst']}Cluster options{col['reset']}"
     )
 
     cluster_options.add_argument(
@@ -80,7 +80,7 @@ def parallel_args(base_args: object, col: dict, help_message: str) -> None:
     None
     """
     parallel_process = base_args.add_argument_group(
-        f"{col['darker_pink']}Parallel Processing arguments{col['reset']}"
+        f"{col['darker_pink']}Parallel Processing option{col['reset']}"
     )
     parallel_process.add_argument(
         "-n",
@@ -108,7 +108,7 @@ def set_up_args(base_args: object, col: dict) -> None:
     None
     """
     set_up_args = base_args.add_argument_group(
-        f"{col['deep_pink']}Set Up Arguments{col['reset']}"
+        f"{col['deep_pink']}Set up options{col['reset']}"
     )
     set_up_args.add_argument(
         "-l",

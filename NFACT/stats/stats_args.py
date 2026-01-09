@@ -124,13 +124,13 @@ def comp_loading_args(args: object) -> None:
     )
     set_up_args(comp_args, col)
     decomp_args = comp_args.add_argument_group(
-        f"{col['plum']}Decomp args{col['reset']}"
+        f"{col['plum']}Decomp options{col['reset']}"
     )
 
     nfact_decomp_folder(decomp_args)
     algo_arg(decomp_args)
     stats_args = comp_args.add_argument_group(
-        f"{col['darker_pink']}Stats args{col['reset']}"
+        f"{col['darker_pink']}Stats options{col['reset']}"
     )
     stats_args.add_argument(
         "-C",
@@ -171,13 +171,13 @@ def stat_map_args(args) -> dict:
         help="Overwrites previous file structure",
     )
     decomp_args = stats_args.add_argument_group(
-        f"{col['plum']}Decomp args{col['reset']}"
+        f"{col['plum']}Decomp options{col['reset']}"
     )
 
     nfact_decomp_folder(decomp_args)
     algo_arg(decomp_args)
     map_args = stats_args.add_argument_group(
-        f"{col['pink']}Statsmap args{col['reset']}"
+        f"{col['pink']}Statsmap options{col['reset']}"
     )
     map_args.add_argument(
         "-c",
