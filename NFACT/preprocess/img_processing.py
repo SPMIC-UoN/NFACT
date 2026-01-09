@@ -315,9 +315,26 @@ def downsample_roi(
     atlas_roi: str,
     high_res_sphere: str,
     low_res_sphere: str,
-    side: str,
     seed_directory: str,
 ) -> None:
+    """
+    Function to downsample ROI.
+
+    Parameters
+    ----------
+    atlas_roi: str
+        the ROI to downsample
+    high_res_sphere: str
+        the high resolution sphere
+    low_res_sphere: str,
+        the low resolution sphere
+    seed_directory: str
+        directory to save output in
+
+    Returns
+    -------
+    None
+    """
     wb_cmd(
         [
             "-metric-resample",
@@ -344,9 +361,26 @@ def downsample_suface(
     surface: str,
     high_res_sphere: str,
     low_res_sphere: str,
-    side: str,
     seed_directory: str,
 ) -> None:
+    """
+    Function to downsample surface.
+
+    Parameters
+    ----------
+    surface: str
+        the surface to downsample
+    high_res_sphere: str
+        the high resolution sphere
+    low_res_sphere: str,
+        the low resolution sphere
+    seed_directory: str
+        directory to save output in
+
+    Returns
+    -------
+    None
+    """
     wb_cmd(
         [
             "-surface-resample",
@@ -367,13 +401,67 @@ def downsample_surface_seed(
     seed_directory: str,
     nvertx: int,
 ) -> None:
+    """
+    Function to downsample surface seeds
+    and the medial ROI.
+
+    Parameters
+    ----------
+    surface: str
+        the surface to downsample
+    high_res_sphere: str
+        the high resolution sphere
+    side: str
+        which hemishpere
+    seed_directory: str
+        directory to save output in
+    nvertx: int
+        number of vertexes to downsample to
+
+    Returns
+    -------
+    None
+    """
+
     create_sphere(seed_directory, nvertx)
     low_res_sphere = os.path.join(seed_directory, f"{side}.surf.gii")
     downsample_roi(atlas_roi, high_res_sphere, low_res_sphere, side, seed_directory)
     downsample_suface(surface, high_res_sphere, low_res_sphere, side, seed_directory)
 
 
-def downsampling(seeds, rois, seed_directory, filetree, sub, nvertx, nvoxels):
+def downsampling(
+    seeds: list,
+    rois: list,
+    seed_directory: str,
+    filetree: object,
+    sub: str,
+    nvertx: int,
+    nvoxels: int,
+) -> None:
+    """
+    Function to downsample seeds
+
+    Parameters
+    ----------
+    seeds: list
+        list of seeds
+    rois: list
+        list of rois
+    filetree: object
+        filetree object with paths to
+        sphere
+    seed_directory: str
+        directory to save output in
+    sub: str
+        string of subject being processed
+    nvertx: int
+        number of vertexes to downsample to
+    nvoxels: int
+        voxel resolution to downsample to
+    Returns
+    -------
+    None
+    """
     for seed, roi in product(seeds, rois):
         if check_seeds_surfaces([seed]):
             side = (
@@ -384,11 +472,21 @@ def downsampling(seeds, rois, seed_directory, filetree, sub, nvertx, nvoxels):
                 else "U"
             )
             if side == "U":
-                print("Unable to Downsample")
-                return None
-            highres = os.path.join(
-                sub, filetree_get_files(filetree, os.path.basename(sub), side, "sphere")
-            )
+                error_and_exit(
+                    False,
+                    "Unable to Downsample as cannot workout if seed is left or right side",
+                )
+
+            try:
+                highres = os.path.join(
+                    sub,
+                    filetree_get_files(filetree, os.path.basename(sub), side, "sphere"),
+                )
+            except Exception as e:
+                error_and_exit(
+                    False,
+                    f"Unable to find sphere in file structure due to {e}. \n Unable to downsample",
+                )
             downsample_surface_seed(seed, roi, highres, side, seed_directory, nvertx)
         else:
             downsample_volume(
