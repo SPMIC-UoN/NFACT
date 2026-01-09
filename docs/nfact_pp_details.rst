@@ -13,7 +13,7 @@ Required input:
     - Output directory (absolute path)
 
 Input needed for filetree mode:
-    - .tree file (NFACT_PP comes with some defaults such as hcp)
+    - .tree file (NFACT_PP comes with some defaults for the hcp)
 
 Input needed for both surface and volume mode:
     - Seeds path inside folder (relative path, must be same across subjects)
@@ -31,7 +31,7 @@ Warps must be ordered Standard2diff and Diff2standard. If your target fdt paths 
 
 Optional NFACT_PP inputs:
 - A seed reference space to define seed space used by probtrackx. Default is Human MNI. 
-- Target image. Can be a whole brain or an ROI. Recommend to downsampled (or else matrix is huge!!). Default is seed reference space. 
+- Target image. Can be a whole brain or an ROI. Recommend to downsampled (or else matrix is huge!!) see below for downsampling. Default is seed reference space. 
 
 
 Input folder
@@ -52,11 +52,8 @@ nfact_pp can accept filetrees via the --file_tree command. The filetree has spec
 
 
 nfact_pp prebuilt filetrees:
-  - ``hcp``: standard hcp folder structure with seeds as L/R white.32k_fs_LR.surf.gii boundary and atlasroi.32k_fs_LR.shape.gii as rois. stop/wtstop files specified
-  - ``hcp_qunex``: The same as hcp but assumes the qunex hcp folder set up
-  - ``hcp_downsample_surfaces``: hcp style data but assumes there is a downsample folder in the top level directory (same level as the MNINonLinear). Seeds are expected to be called {sub}.{hemi}.white.resampled_fs_LR.surf.gii and rois {sub}.{hemi}.atlasroi.resampled_fs_LR.shape.gii Where sub is your subject id and hemi is eithe L or R. 
-  - ``hcp_donwsample``: Same as hcp_downsample_surfaces but with an additional subcortical.nii.gz (mask of subcortical structures)
-  - ``hcp_cifti``: Same as hcp_downsample_surfaces but with subcortical volumes labelled for cifti support (See CIFTI support)
+  - ``hcp``: standard hcp folder structure with seeds as L/R white.32k_fs_LR.surf.gii boundary and atlasroi.32k_fs_LR.shape.gii as rois. stop/wtstop files specified along with high res sphere for downsampling.
+  - ``hcp_cifti``: Same as hcp but with subcortical volumes labelled for cifti support (See CIFTI support)
 
 Building custom filetrees 
 """""""""""""""""""""""""
@@ -131,6 +128,17 @@ Below is the HCP filetree for cifti.
             white.R.asc (wtstop18)
   T1w
       Diffusion.bedpostX (bedpostX)
+
+Downsampling
+==============
+Given that decomposition at with high resolution is computationally expensive and may not be beneficial, inputs can be downsampled to lower resolutions. 
+nfact_pp has the ability to downsample surfaces and volumes using the ``--downsample`` option. Resolution can be controlled by ``--vertex`` and ``--voxel`` and 
+the defaults are 10,000 and 3mm respectively. To downsample nfact_pp needs a filetree specified (see above) and to downsample surfaces a high resolution sphere 
+with workbench installed.
+
+NFACT can also downsample the target image using the ``-mm_res`` argument. Current default is 3mm.
+
+**WARNING** If using wtstop and stop files NFACT does not downsample these!
 
 CIFTI support
 ==============
@@ -269,7 +277,7 @@ Tractography options:
   -ns, --nsamples 
     Number of samples per seed used in tractography, default is 1000.
   -mm, --mm_res 
-    Resolution of target image. Default is 2 mm.
+    Resolution of target image. Default is 3 mm.
   -p, --ptx_options 
     Path to ptx_options file for additional options. Doesn't override defaults.
   -e, --exclusion 
