@@ -155,12 +155,13 @@ Usage
 
 
 .. code-block:: text
-
-   nfact_pp [-h] [-hh] [-O] [-l LIST_OF_SUBJECTS] [-o OUTDIR] [-G] [-f FILE_TREE] 
-   [-s SEED [SEED ...]] [-w WARPS [WARPS ...]] [-b BPX_PATH] [-r ROI [ROI ...]] 
-   [-sr SEEDREF] [-t TARGET2] [-ns NSAMPLES] [-mm MM_RES] [-p PTX_OPTIONS] 
-   [-e EXCLUSION] [-S [STOP ...]] [-A] [-n N_CORES] [-C] [-cq CLUSTER_QUEUE] 
-   [-cr CLUSTER_RAM] [-ct CLUSTER_TIME] [-cqos CLUSTER_QOS]
+  nfact_pp [-h] [-hh] [-O] [-l LIST_OF_SUBJECTS] [-o OUTDIR] [-G] [-D] 
+  [-vx VERTEX] [-vl VOXEL] [-f FILE_TREE] [-s SEED [SEED ...]] [-w WARPS [WARPS ...]] 
+  [-b BPX_PATH] [-r ROI [ROI ...]] [-sr SEEDREF] [-t TARGET2] [-ns NSAMPLES] [-mm MM_RES] 
+  [-p PTX_OPTIONS] [-e EXCLUSION] [-S [STOP ...]] [-A] [-F] [-n N_CORES] [-C] 
+  [-cq CLUSTER_QUEUE] [-cr CLUSTER_RAM] [-ct CLUSTER_TIME] [-cqos CLUSTER_QOS]
+ 
+   
 
 Options
 """"""""
