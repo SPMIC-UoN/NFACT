@@ -1,7 +1,9 @@
 import subprocess
 import os
+from itertools import product
 from NFACT.base.utils import error_and_exit
 from NFACT.preprocess.nfactpp_functions import filetree_get_files
+from NFACT.base.setup import check_seeds_surfaces
 
 
 def seeds_to_ascii(surfin: str, roi: str, surfout: str) -> None:
@@ -317,20 +319,24 @@ def downsample_roi(
     seed_directory: str,
 ) -> None:
     wb_cmd(
-        "-metric-resample",
-        atlas_roi,
-        high_res_sphere,
-        low_res_sphere,
-        "BARYCENTRIC",
-        os.path.join(seed_directory, f"{side}.atlasroi.resampled_fs_LR.shape.gii"),
+        [
+            "-metric-resample",
+            atlas_roi,
+            high_res_sphere,
+            low_res_sphere,
+            "BARYCENTRIC",
+            os.path.join(seed_directory, os.path.basename(atlas_roi)),
+        ]
     )
     wb_cmd(
-        "-metric-math",
-        "round(m)",
-        os.path.join(seed_directory, f"{side}.atlasroi.resampled_fs_LR.shape.gii"),
-        "-var",
-        "m",
-        os.path.join(seed_directory, f"{side}.atlasroi.resampled_fs_LR.shape.gii"),
+        [
+            "-metric-math",
+            "round(m)",
+            os.path.join(seed_directory, os.path.basename(atlas_roi)),
+            "-var",
+            "m",
+            os.path.join(seed_directory, os.path.basename(atlas_roi)),
+        ]
     )
 
 
@@ -342,12 +348,14 @@ def downsample_suface(
     seed_directory: str,
 ) -> None:
     wb_cmd(
-        "-surface-resample",
-        surface,
-        high_res_sphere,
-        low_res_sphere,
-        "BARYCENTRIC",
-        os.path.join(seed_directory, f"{side}.atlasroi.resampled_fs_LR.shape.gii"),
+        [
+            "-surface-resample",
+            surface,
+            high_res_sphere,
+            low_res_sphere,
+            "BARYCENTRIC",
+            os.path.join(seed_directory, os.path.basename(surface)),
+        ]
     )
 
 
@@ -355,23 +363,38 @@ def downsample_surface_seed(
     surface: str,
     atlas_roi: str,
     high_res_sphere: str,
-    low_res_sphere: str,
     side: str,
     seed_directory: str,
     nvertx: int,
 ) -> None:
     create_sphere(seed_directory, nvertx)
+    low_res_sphere = os.path.join(seed_directory, f"{side}.surf.gii")
     downsample_roi(atlas_roi, high_res_sphere, low_res_sphere, side, seed_directory)
     downsample_suface(surface, high_res_sphere, low_res_sphere, side, seed_directory)
 
 
-def downsampling(
-    seeds,
-    rois,
-    seed_directory,
-    filetree,
-):
-    for seed_location in seeds:
-        if "gii":
-            highres = filetree_get_files(filetree, "")
-            downsample_surface_seed()
+def downsampling(seeds, rois, seed_directory, filetree, sub, nvertx, nvoxels):
+    for seed, roi in product(seeds, rois):
+        if check_seeds_surfaces([seed]):
+            side = (
+                "L"
+                if "L" in (seed_extension := os.path.basename(seed).split("."))
+                else "R"
+                if "R" in seed_extension
+                else "U"
+            )
+            if side == "U":
+                print("Unable to Downsample")
+                return None
+            highres = os.path.join(
+                sub, filetree_get_files(filetree, os.path.basename(sub), side, "sphere")
+            )
+            downsample_surface_seed(seed, roi, highres, side, seed_directory, nvertx)
+        else:
+            downsample_volume(
+                seed,
+                os.path.join(seed_directory, os.path.basename(seed)),
+                nvoxels,
+                seed,
+                "nearestneighbour",
+            )

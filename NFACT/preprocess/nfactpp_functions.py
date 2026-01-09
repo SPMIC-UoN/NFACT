@@ -322,12 +322,7 @@ def create_files_for_decomp(nfact_directory: str, seeds: list, roi: list) -> Non
     roi_filename = "roi_for_decomp"
     base_nfact_dir = os.path.dirname(nfact_directory)
     if not os.path.exists(os.path.join(base_nfact_dir, f"{seed_filename}.txt")):
-        seed_text = "\n".join(
-            [
-                os.path.join(nfact_directory, "files", os.path.basename(seed))
-                for seed in seeds
-            ]
-        )
+        seed_text = "\n".join(seeds)
         write_options_to_file(base_nfact_dir, seed_text, seed_filename)
 
     if roi:
