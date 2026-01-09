@@ -134,9 +134,12 @@ Downsampling
 Given that decomposition at with high resolution is computationally expensive and may not be beneficial, inputs can be downsampled to lower resolutions. 
 nfact_pp has the ability to downsample surfaces and volumes using the ``--downsample`` option. Resolution can be controlled by ``--vertex`` and ``--voxel`` and 
 the defaults are 10,000 and 3mm respectively. To downsample nfact_pp needs a filetree specified (see above) and to downsample surfaces a high resolution sphere 
-with workbench installed.
+with workbench installed. 
 
 NFACT can also downsample the target image using the ``-mm_res`` argument. Current default is 3mm.
+
+**NOTE** nfact_pp creates copies of files so downsampling is done on the copy not the original file. nfact_pp will also not change the name of the file. So 
+for example with the hcp filetree the seed will still be called 32_k even if downsampled to 10k!
 
 **WARNING** If using wtstop and stop files NFACT does not downsample these!
 
