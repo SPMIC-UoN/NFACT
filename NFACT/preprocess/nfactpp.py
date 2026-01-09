@@ -29,14 +29,46 @@ import os
 import shutil
 
 
-def change_file_path_to_nfactpp(nfact_directory, img_file_paths):
+def change_file_path_to_nfactpp(nfact_directory: str, img_file_paths: list) -> list:
+    """
+    Function to change file path for imaging files
+    used in seeding.
+
+    Parameters
+    -----------
+    nfact_directory: str
+        path to nfact directory
+    img_file_paths: list
+        list of imaging file paths
+
+    Returns
+    -------
+    list: list object
+        list of imaging paths
+    """
     return [
         os.path.join(nfact_directory, "files", os.path.basename(img_file))
         for img_file in img_file_paths
     ]
 
 
-def move_seeds(nfactpp_diretory: str, seed: list, roi: list):
+def move_seeds(nfactpp_diretory: str, seed: list, roi: list) -> None:
+    """
+    Function to move seeds to nfact directory
+
+    Parameters
+    -----------
+    nfact_directory: str
+        path to nfact directory
+    seed: list
+        list of seed file paths
+    roi: list
+        list of rois file paths
+
+    Returns
+    -------
+    None
+    """
     for seed_location in seed:
         shutil.copyfile(
             seed_location,
@@ -52,7 +84,7 @@ def move_seeds(nfactpp_diretory: str, seed: list, roi: list):
 
 def setup_subject_directory(
     nfactpp_diretory: str, seed: list, roi: list, sub, arg, col
-):
+) -> None:
     """
     Function to set up the subjects
     directory

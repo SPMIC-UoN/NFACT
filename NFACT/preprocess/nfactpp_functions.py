@@ -326,6 +326,10 @@ def create_files_for_decomp(nfact_directory: str, seeds: list, roi: list) -> Non
         list of seeds
     roi: list
         list of roi files
+
+    Returns
+    -------
+    None
     """
     seed_filename = "seeds_for_decomp"
     roi_filename = "roi_for_decomp"
