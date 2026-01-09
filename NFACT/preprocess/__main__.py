@@ -5,6 +5,7 @@ from NFACT.preprocess.nfactpp_setup import (
     check_ptx_options_are_valid,
     check_provided_img,
 )
+from NFACT.preprocess.img_processing import wb_cmd
 from NFACT.base.utils import error_and_exit, colours
 from NFACT.base.signithandler import Signit_handler
 from NFACT.base.filesystem import read_file_to_list, make_directory, delete_folder
@@ -57,6 +58,22 @@ def nfact_pp_main(arg: dict = None):
             False,
             "Unclear how to process inputs. Please provide either --absolute or --file_tree ",
         )
+
+    if arg["downsample"]:
+        if not arg["file_tree"]:
+            error_and_exit(
+                False, "Downsampling currently only supported with a given filetree."
+            )
+        if type(arg["stop"]) is list:
+            print(
+                f"{col['red']}WARNING. Make Sure wtstop and stop files are in the same resolution. NFACT does not do this for you {col['reset']}"
+            )
+        # Check workbench is available
+        try:
+            wb_cmd(["-help"])
+        except FileNotFoundError:
+            error_and_exit(False, "Unable to locate workbench. Check it is installed")
+
     # Error handle if FSL not installed or loaded
     check_fsl_is_installed()
 

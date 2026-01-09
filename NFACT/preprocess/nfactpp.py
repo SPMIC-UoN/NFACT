@@ -18,8 +18,9 @@ from NFACT.preprocess.probtrackx_functions import (
 from NFACT.preprocess.img_processing import (
     clean_target2,
     binarise_target2,
-    downsample_target2,
+    downsample_volume,
     seeds_to_ascii,
+    downsampling,
 )
 from NFACT.base.utils import colours, error_and_exit
 from NFACT.base.setup import check_seeds_surfaces
@@ -28,7 +29,62 @@ import os
 import shutil
 
 
-def setup_subject_directory(nfactpp_diretory: str, seed: list, roi: list) -> None:
+def change_file_path_to_nfactpp(nfact_directory: str, img_file_paths: list) -> list:
+    """
+    Function to change file path for imaging files
+    used in seeding.
+
+    Parameters
+    -----------
+    nfact_directory: str
+        path to nfact directory
+    img_file_paths: list
+        list of imaging file paths
+
+    Returns
+    -------
+    list: list object
+        list of imaging paths
+    """
+    return [
+        os.path.join(nfact_directory, "files", os.path.basename(img_file))
+        for img_file in img_file_paths
+    ]
+
+
+def move_seeds(nfactpp_diretory: str, seed: list, roi: list) -> None:
+    """
+    Function to move seeds to nfact directory
+
+    Parameters
+    -----------
+    nfact_directory: str
+        path to nfact directory
+    seed: list
+        list of seed file paths
+    roi: list
+        list of rois file paths
+
+    Returns
+    -------
+    None
+    """
+    for seed_location in seed:
+        shutil.copyfile(
+            seed_location,
+            os.path.join(nfactpp_diretory, "files", os.path.basename(seed_location)),
+        )
+    if roi:
+        for roi_location in roi:
+            shutil.copyfile(
+                roi_location,
+                os.path.join(nfactpp_diretory, "files", os.path.basename(roi_location)),
+            )
+
+
+def setup_subject_directory(
+    nfactpp_diretory: str, seed: list, roi: list, sub, arg, col
+) -> None:
     """
     Function to set up the subjects
     directory
@@ -45,17 +101,19 @@ def setup_subject_directory(nfactpp_diretory: str, seed: list, roi: list) -> Non
     None
     """
     nfact_pp_folder_setup(nfactpp_diretory)
-    for seed_location in seed:
-        shutil.copyfile(
-            seed_location,
-            os.path.join(nfactpp_diretory, "files", os.path.basename(seed_location)),
+    if arg["downsample"]:
+        print(f"\n{col['pink']}Downsampling seeds{col['reset']}")
+        downsampling(
+            seed,
+            roi,
+            os.path.join(nfactpp_diretory, "files"),
+            arg["file_tree"],
+            sub,
+            arg["vertex"],
+            arg["voxel"],
         )
-    if roi:
-        for roi_location in roi:
-            shutil.copyfile(
-                roi_location,
-                os.path.join(nfactpp_diretory, "files", os.path.basename(roi_location)),
-            )
+        return None
+    move_seeds(nfactpp_diretory, seed, roi)
 
 
 def process_surface(nfactpp_diretory: str, seed: list, roi: list) -> str:
@@ -130,7 +188,7 @@ def target_generation(arg: dict, nfactpp_diretory: str, col: dict) -> None:
         shutil.copy2(arg["seedref"], os.path.join(nfactpp_diretory, "target2.nii.gz"))
 
     target_2_ref = os.path.join(nfactpp_diretory, "target2")
-    downsample_target2(
+    downsample_volume(
         target_2_ref,
         os.path.join(nfactpp_diretory, "target2"),
         arg["mm_res"],
@@ -190,10 +248,12 @@ def process_subject(sub: str, arg: dict, col: dict) -> list:
     get_file(arg["warps"], sub)
     nfactpp_diretory = os.path.join(arg["outdir"], "nfact_pp", sub_id)
     roi = get_file(arg["roi"], sub, arg["absolute"]) if arg["surface"] else False
-    setup_subject_directory(nfactpp_diretory, seed, roi)
+    setup_subject_directory(nfactpp_diretory, seed, roi, sub, arg, col)
+    seed = change_file_path_to_nfactpp(nfactpp_diretory, seed)
     create_files_for_decomp(nfactpp_diretory, seed, roi)
 
     if arg["surface"]:
+        roi = change_file_path_to_nfactpp(nfactpp_diretory, roi)
         seed_text = process_surface(nfactpp_diretory, seed, roi)
 
     error_and_exit(write_options_to_file(nfactpp_diretory, seed_text, "seeds"))

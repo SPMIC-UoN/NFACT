@@ -119,10 +119,19 @@ def process_filetree_args(arg: dict, sub: str) -> dict:
         arguments
     """
     del arg["seed"]
-    del arg["roi"]
-    arg["seed"] = [
-        filetree_get_files(arg["file_tree"], sub, hemi, "seed") for hemi in ["L", "R"]
-    ]
+    try:
+        del arg["roi"]
+    except KeyError:
+        pass
+
+    arg["seed"] = list(
+        dict.fromkeys(
+            [
+                filetree_get_files(arg["file_tree"], sub, hemi, "seed")
+                for hemi in ["L", "R"]
+            ]
+        )
+    )
 
     if "add_seed1" in arg["file_tree"].template_keys():
         arg["seed"] = arg["seed"] + get_additional_seeds(arg["file_tree"], sub)
@@ -317,17 +326,16 @@ def create_files_for_decomp(nfact_directory: str, seeds: list, roi: list) -> Non
         list of seeds
     roi: list
         list of roi files
+
+    Returns
+    -------
+    None
     """
     seed_filename = "seeds_for_decomp"
     roi_filename = "roi_for_decomp"
     base_nfact_dir = os.path.dirname(nfact_directory)
     if not os.path.exists(os.path.join(base_nfact_dir, f"{seed_filename}.txt")):
-        seed_text = "\n".join(
-            [
-                os.path.join(nfact_directory, "files", os.path.basename(seed))
-                for seed in seeds
-            ]
-        )
+        seed_text = "\n".join(seeds)
         write_options_to_file(base_nfact_dir, seed_text, seed_filename)
 
     if roi:

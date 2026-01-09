@@ -40,6 +40,33 @@ def nfact_pp_args() -> dict:
         To use the GPU version of probtrackx2.
         """,
     )
+
+    downsample_input = base_args.add_argument_group(
+        f"{col['lav']}Downsample options{col['reset']}"
+    )
+    downsample_input.add_argument(
+        "-D",
+        "--downsample",
+        dest="downsample",
+        action="store_true",
+        default=False,
+        help="""Should the seeds be downsampled. Sufaces need workbench installed to work.
+        Default is False""",
+    )
+    downsample_input.add_argument(
+        "-vx",
+        "--vertex",
+        dest="vertex",
+        default=10000,
+        help="Value to downsample vertexes in a single suface seed to. Default is 10,000.",
+    )
+    downsample_input.add_argument(
+        "-vl",
+        "--voxel",
+        dest="voxel",
+        default=3,
+        help="Value to downsample voxels in volume seeds to. Default is 3mm.",
+    )
     file_tree_input = base_args.add_argument_group(
         f"{col['plum']}Filetree option{col['reset']}"
     )
@@ -176,8 +203,8 @@ def nfact_pp_args() -> dict:
         """,
     )
     tractography_input.add_argument(
-        "-D",
-        "--dont_save_fdt_img",
+        "-F",
+        "--fdt_img",
         action="store_true",
         default=False,
         dest="dont_save_fdt_img",

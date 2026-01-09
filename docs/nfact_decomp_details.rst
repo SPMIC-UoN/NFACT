@@ -1,12 +1,12 @@
 
 How nfact_decomp does decomposition 
-------------------------------------
+====================================
 
 NFACT uses an iterative NMF process, where several NMFs (usually 20) are ran to avoid local optimas and ensure robustness. This process is called SSO (taken by icasso). The ouput is then clustered and the results used to initiate a final NMF.
 NFACT provides information on this clusters so that uses can explore robustness of connectivity patterns.
 
 Output
--------
+======
 
 Decomposition patterns are saved as ``W_`` (white matter decomposition) ``G_`` (grey matter decompostion). 
 White matter components are saved as nii.gz while grey matter decompositions are saved depending on seed type.
@@ -25,18 +25,18 @@ Outputs:
       Pale red is centroid of component of cluster, blue is components, grey is edges between all cluster and black are edges in the top 95th centile. Red lines indicate which components belong wo which cluster.
 
 Other save options
-""""""""""""""""""
+------------------
 Components can also be saved directly as .npz files by giving the ``--disk``` argument. 
 The grey component can be saved as a cifti as long as seeds are named in a set way (see `CIFTI support <nfact_pp_details.html#cifti-support>`_). 
 
 If saving failed
-""""""""""""""""""
+------------------
 By default if nfact_decomp can't save decomposition to imaging files then they will be saved to disk.
 If nfact_decomp can't save files as ciftis (assuming the ``-cifti`` is given) then it will save files as corresponding gii/nii files depending on seed type.
 
 
 Other decomposition options 
----------------------------
+===========================
 By default nfact_decomp will threshold components to remove noise. nfact_decomp will consider noise values less than a zscore value (default is 3). 
 In some cases this might be too liberal and might need to be adjusted or turned  off by the ``-t``, ``--threshold``
 
@@ -44,7 +44,7 @@ White and Grey matter connectivity components can also be normalised with the zs
 Winner takes all maps can be created with the brain represented by which components are the "winner" in that region. 
 
 Usage
-------
+=====
 
 .. code-block:: text
 
@@ -61,7 +61,7 @@ General Options:
   -O, --overwrite 
     Overwrites previous file structure
 
-Set Up Arguments:
+Set Up options:
   -l, --list_of_subjects 
     Filepath to a list of subjects
   -o, --outdir 
@@ -114,7 +114,7 @@ ICA options:
     nfact_decomp by default sign flips the ICA distribution to reduce the number of negative values. Use this option to stop the sign_flip.
 
 Example Usage
-"""""""""""""""""""
+--------------
 
 Basic NMF with volume seeds usage:
   .. code-block:: text

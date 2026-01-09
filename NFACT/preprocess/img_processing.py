@@ -1,6 +1,9 @@
 import subprocess
 import os
+from itertools import product
 from NFACT.base.utils import error_and_exit
+from NFACT.preprocess.nfactpp_functions import filetree_get_files
+from NFACT.base.setup import check_seeds_surfaces
 
 
 def seeds_to_ascii(surfin: str, roi: str, surfout: str) -> None:
@@ -49,7 +52,7 @@ def seeds_to_ascii(surfin: str, roi: str, surfout: str) -> None:
         )
 
 
-def downsample_target2(
+def downsample_volume(
     target_img: str,
     output_dir: str,
     resolution: str,
@@ -109,6 +112,30 @@ def downsample_target2(
         error_and_exit(
             False, f"FSL FLIRT failure due to {run.stderr}. Unable to build target2"
         )
+
+
+def wb_cmd(command: list) -> None:
+    """
+    Wrapper function around workbench
+
+    Parameters
+    ----------
+    command: list
+        workbench command
+
+    Returns
+    -------
+    None
+    """
+    command.insert(0, "wb_command")
+    try:
+        run = subprocess.run(command, capture_output=True)
+    except subprocess.CalledProcessError as error:
+        error_and_exit(False, f"Error in calling Workbench: {error}")
+    except KeyboardInterrupt:
+        run.kill()
+    if run.returncode != 0:
+        error_and_exit(False, f"Workbench failed due to {run.stderr}.")
 
 
 def fslmaths_cmd(command: list) -> None:
@@ -244,3 +271,232 @@ def binarise_target2(target2_path: str) -> None:
     """
     fslmaths_cmd([target2_path, "-thr", "1.0", target2_path])
     fslmaths_cmd([target2_path, "-bin", target2_path])
+
+
+def create_sphere(seed_directory: str, nvertx: int) -> None:
+    """
+    Function to create sphere for downsampling
+
+    Parameters
+    -----------
+    seed_directory: str
+        directory where seeds are
+    nvertx: int
+        numb of vertexs
+
+    Returns
+    -------
+    None
+    """
+
+    wb_cmd(
+        [
+            "-surface-create-sphere",
+            f"{nvertx}",
+            os.path.join(seed_directory, "R.surf.gii"),
+        ]
+    )
+    wb_cmd(
+        [
+            "-surface-flip-lr",
+            os.path.join(seed_directory, "R.surf.gii"),
+            os.path.join(seed_directory, "L.surf.gii"),
+        ]
+    )
+    wb_cmd(
+        ["-set-structure", os.path.join(seed_directory, "R.surf.gii"), "CORTEX_RIGHT"]
+    )
+    wb_cmd(
+        ["-set-structure", os.path.join(seed_directory, "L.surf.gii"), "CORTEX_LEFT"]
+    )
+
+
+def downsample_roi(
+    atlas_roi: str,
+    high_res_sphere: str,
+    low_res_sphere: str,
+    seed_directory: str,
+) -> None:
+    """
+    Function to downsample ROI.
+
+    Parameters
+    ----------
+    atlas_roi: str
+        the ROI to downsample
+    high_res_sphere: str
+        the high resolution sphere
+    low_res_sphere: str,
+        the low resolution sphere
+    seed_directory: str
+        directory to save output in
+
+    Returns
+    -------
+    None
+    """
+    wb_cmd(
+        [
+            "-metric-resample",
+            atlas_roi,
+            high_res_sphere,
+            low_res_sphere,
+            "BARYCENTRIC",
+            os.path.join(seed_directory, os.path.basename(atlas_roi)),
+        ]
+    )
+    wb_cmd(
+        [
+            "-metric-math",
+            "round(m)",
+            os.path.join(seed_directory, os.path.basename(atlas_roi)),
+            "-var",
+            "m",
+            os.path.join(seed_directory, os.path.basename(atlas_roi)),
+        ]
+    )
+
+
+def downsample_suface(
+    surface: str,
+    high_res_sphere: str,
+    low_res_sphere: str,
+    seed_directory: str,
+) -> None:
+    """
+    Function to downsample surface.
+
+    Parameters
+    ----------
+    surface: str
+        the surface to downsample
+    high_res_sphere: str
+        the high resolution sphere
+    low_res_sphere: str,
+        the low resolution sphere
+    seed_directory: str
+        directory to save output in
+
+    Returns
+    -------
+    None
+    """
+    wb_cmd(
+        [
+            "-surface-resample",
+            surface,
+            high_res_sphere,
+            low_res_sphere,
+            "BARYCENTRIC",
+            os.path.join(seed_directory, os.path.basename(surface)),
+        ]
+    )
+
+
+def downsample_surface_seed(
+    surface: str,
+    atlas_roi: str,
+    high_res_sphere: str,
+    side: str,
+    seed_directory: str,
+    nvertx: int,
+) -> None:
+    """
+    Function to downsample surface seeds
+    and the medial ROI.
+
+    Parameters
+    ----------
+    surface: str
+        the surface to downsample
+    high_res_sphere: str
+        the high resolution sphere
+    side: str
+        which hemishpere
+    seed_directory: str
+        directory to save output in
+    nvertx: int
+        number of vertexes to downsample to
+
+    Returns
+    -------
+    None
+    """
+
+    create_sphere(seed_directory, nvertx)
+    low_res_sphere = os.path.join(seed_directory, f"{side}.surf.gii")
+    downsample_roi(atlas_roi, high_res_sphere, low_res_sphere, seed_directory)
+    downsample_suface(surface, high_res_sphere, low_res_sphere, seed_directory)
+
+
+def downsampling(
+    seeds: list,
+    rois: list,
+    seed_directory: str,
+    filetree: object,
+    sub: str,
+    nvertx: int,
+    nvoxels: int,
+) -> None:
+    """
+    Function to downsample seeds
+
+    Parameters
+    ----------
+    seeds: list
+        list of seeds
+    rois: list
+        list of rois
+    filetree: object
+        filetree object with paths to
+        sphere
+    seed_directory: str
+        directory to save output in
+    sub: str
+        string of subject being processed
+    nvertx: int
+        number of vertexes to downsample to
+    nvoxels: int
+        voxel resolution to downsample to
+    Returns
+    -------
+    None
+    """
+
+    if not rois:
+        rois = range(len(seeds))
+
+    for seed, roi in product(seeds, rois):
+        if check_seeds_surfaces([seed]):
+            side = (
+                "L"
+                if "L" in (seed_extension := os.path.basename(seed).split("."))
+                else "R"
+                if "R" in seed_extension
+                else "U"
+            )
+            if side == "U":
+                error_and_exit(
+                    False,
+                    "Unable to Downsample as cannot workout if seed is left or right side",
+                )
+
+            try:
+                highres = os.path.join(
+                    sub,
+                    filetree_get_files(filetree, os.path.basename(sub), side, "sphere"),
+                )
+            except Exception as e:
+                error_and_exit(
+                    False,
+                    f"Unable to find sphere in file structure due to {e}.\nUnable to downsample",
+                )
+            downsample_surface_seed(seed, roi, highres, side, seed_directory, nvertx)
+        else:
+            downsample_volume(
+                seed,
+                os.path.join(seed_directory, os.path.basename(seed)),
+                nvoxels,
+                seed,
+                "nearestneighbour",
+            )

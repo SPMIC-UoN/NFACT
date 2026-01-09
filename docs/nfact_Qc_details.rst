@@ -1,10 +1,10 @@
 Overview
----------
+=========
 Each map contains the number of times that voxel/vertex appears in the decomposition. 
 This is then saved as a hitmap with each voxel/vertex containing the number of times a component value is in that voxel or as a binary mask to demonstrate coverage.
 
 Output
--------
+========
 Output depends on what imging files are present in the decomp directory. As a minimum (due to how nfact works) there will be a nii.gz file. 
 However, depending on if the grey component is nii.gz/gii/.dscalar.nii this will depend on the output.
 
@@ -20,12 +20,12 @@ Prefix:
 
 
 Note on output
-""""""""""""""
+--------------
 If nfact_decomp has been run with thresholding then look at the _raw files as noise should have been filtered out. 
 However, if not thresholding has been done at the decomp stage then look at the threshold images as this is a more accurate view of how many times a connectivity pattern at that vertex or voxel actually appears
 
-Usage:
-------
+Usage
+========
 
 .. code-block:: text
     

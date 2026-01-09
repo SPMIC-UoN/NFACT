@@ -1,19 +1,19 @@
 Overview
---------
+=========
 Which type of decomposition technique dictates  which dual regression technique will be used. 
 To maintain non negativity in an NMF decomposition NFACT will use non-negative least squares regression. If ICA then it will be a least-squares regression.
 
 Basic usage
------------
+===========
 
 CIFTIs
-""""""
+-------
 Similar to nfact_decomp nfact_dr can save components as cifti dscalars as well as accept cifti dscalars as inputs. 
 
 Please see  `CIFTI support <nfact_pp_details.html#cifti-support>`_.
 
 nfact_dr without nfact_decomp
-""""""""""""""""""""""""""""""
+------------------------------
 nfact_dr can be ran independent from nfact_decomp, however, nfact_decomp expects a strict naming convention of files. 
 
 The following files **MUST** be present and named like this:
@@ -23,7 +23,7 @@ The following files **MUST** be present and named like this:
 These files **MUST** be in a single folder
 
 HPC
----
+===
 nfact_dr jobs can be sent to a high performance computing cluster. Please see `HPC clusters <nfact_pp_details.html#hpc-clusters>`_.
 
 What is unquie about nfact_dr is it can submit jobs to a HPC cluster and parallel the dual regression within a job. 
@@ -32,7 +32,7 @@ The job sumitted is the individual subject but the dual regression within that s
 
 
 Usage
------
+=====
 
 .. code-block:: text
 
@@ -50,13 +50,13 @@ General options:
   -O, --overwrite 
     Overwrites previous file structure
 
-Set Up Arguments:
+Set Up options:
   -l, --list_of_subjects 
     Filepath to a list of subjects
   -o, --outdir 
     Path to output directory
 
-Dual Regression Arguments:
+Dual Regression options:
   -a, --algo 
     Which decomposition algorithm. Options are: NMF (default), or ICA. This is case insensitive.
   -s, --seeds 
@@ -72,11 +72,11 @@ Dual Regression Arguments:
   -D, --dscalar 
     Save GM as cifti dscalar. Seeds must be left and right surfaces with an optional nifti for subcortical structures
 
-Parallel Processing arguments:
+Parallel Processing options:
   -n, --n_cores 
     To parallelize dual regression
 
-Cluster Arguments:
+Cluster options:
   -C, --cluster 
     Use cluster enviornment
   -cq, --queue 
@@ -89,7 +89,7 @@ Cluster Arguments:
     Set the qos for the cluster
 
 Example Usage
-"""""""""""""""""""
+--------------
 
 
 Basic usage:

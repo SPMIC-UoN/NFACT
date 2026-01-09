@@ -32,7 +32,7 @@ def nfactdr_args() -> dict:
     base_arguments(base_args)
     set_up_args(base_args, col)
     dr_args = base_args.add_argument_group(
-        f"{col['pink']}Dual Regression Arguments{col['reset']}"
+        f"{col['pink']}Dual Regression options{col['reset']}"
     )
     algo_arg(dr_args)
     seed_roi_args(dr_args)
