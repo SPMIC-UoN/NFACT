@@ -57,6 +57,11 @@ def nfact_pp_main(arg: dict = None):
             False,
             "Unclear how to process inputs. Please provide either --absolute or --file_tree ",
         )
+
+    if arg["downsample"] and not arg["file_tree"]:
+        error_and_exit(
+            False, "Downsampling currently only supported with a given filetree."
+        )
     # Error handle if FSL not installed or loaded
     check_fsl_is_installed()
 
