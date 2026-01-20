@@ -177,8 +177,8 @@ class NMFsso:
         if self.n_jobs > self.num_int:
             self.n_jobs = self.num_int
 
-        nprint(f"{self.col['pink']}Parallel Jobs: {self.col['reset']}{self.n_jobs}")
-        results = Parallel(n_jobs=self.n_jobs)(
+        print(f"{self.col['light_pink']}")
+        results = Parallel(n_jobs=self.n_jobs, verbose=10)(
             delayed(self._run_single_shared)(
                 self.shm_name,
                 self.shared_shape,
@@ -187,7 +187,7 @@ class NMFsso:
             )
             for _ in range(self.num_int)
         )
-
+        print(f"{self.col['reset']}\n")
         # Collect results
         nmf_sso_results = self._results()
         for grey, white in results:
