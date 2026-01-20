@@ -29,7 +29,9 @@ warnings.filterwarnings("ignore")
 
 
 @ignore_warnings(category=ConvergenceWarning)
-def nmf_decomp(parameters: dict, fdt_matrix: np.ndarray, W_mat=None, H_mat=None) -> dict:
+def nmf_decomp(
+    parameters: dict, fdt_matrix: np.ndarray, W_mat=None, H_mat=None
+) -> dict:
     """
     Function to perform NMF.
 
@@ -47,7 +49,7 @@ def nmf_decomp(parameters: dict, fdt_matrix: np.ndarray, W_mat=None, H_mat=None)
         dictionary of grey and white matter
         components
     """
-    if W_mat is not None and H_matis not None:
+    if W_mat is not None and H_mat is not None:
         parameters = parameters.copy()
         parameters["init"] = "custom"
 
@@ -206,7 +208,7 @@ class NMFsso:
         nmf_sso_results = self._results()
         for iterat in range(colours):
             nprint(
-                f"{self.col['pink']}Run: {self.col['reset']}{iterat+1}/{self.num_int}"
+                f"{self.col['pink']}Run: {self.col['reset']}{iterat + 1}/{self.num_int}"
             )
             self.nmf_params["random_state"] = None
             nmf_state = nmf_decomp(self.nmf_params, self.fdt_mat)
