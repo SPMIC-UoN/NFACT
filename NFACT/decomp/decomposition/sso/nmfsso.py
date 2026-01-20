@@ -29,7 +29,7 @@ warnings.filterwarnings("ignore")
 
 
 @ignore_warnings(category=ConvergenceWarning)
-def nmf_decomp(parameters: dict, fdt_matrix: np.ndarray, W=None, H=None) -> dict:
+def nmf_decomp(parameters: dict, fdt_matrix: np.ndarray, W_mat=None, H_mat=None) -> dict:
     """
     Function to perform NMF.
 
@@ -47,13 +47,13 @@ def nmf_decomp(parameters: dict, fdt_matrix: np.ndarray, W=None, H=None) -> dict
         dictionary of grey and white matter
         components
     """
-    if W is not None and H is not None:
+    if W_mat is not None and H_matis not None:
         parameters = parameters.copy()
         parameters["init"] = "custom"
 
     decomp = NMF(**parameters)
     try:
-        grey_matter = decomp.fit_transform(fdt_matrix, W=W, H=H)
+        grey_matter = decomp.fit_transform(fdt_matrix, W=W_mat, H=H_mat)
     except Exception as e:
         error_and_exit(False, f"Unable to perform NMF due to {e}")
     return {"grey_components": grey_matter, "white_components": decomp.components_}

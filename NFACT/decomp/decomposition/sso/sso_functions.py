@@ -280,24 +280,24 @@ def calculate_elbow(merge_dist: np.ndarray) -> float:
     float: float value
         elbow point
     """
-    x = merge_dist
-    y = np.arange(merge_dist.shape[0])
+    x_coords = merge_dist
+    y_coords = np.arange(merge_dist.shape[0])
 
     # Convert to 3D (z=0)
-    p1 = np.array([x[0], y[0], 0.0])
-    p2 = np.array([x[-1], y[-1], 0.0])
+    start_point = np.array([x_coords[0], y_coords[0], 0.0])
+    end_point = np.array([x_coords[-1], y_coords[-1], 0.0])
 
     distances = []
-    for xi, yi in zip(x, y):
-        p0 = np.array([xi, yi, 0.0])
+    for x_coords_point, y_coords_point in zip(x_coords, y_coords):
+        moving_point = np.array([x_coords_point, y_coords_point, 0.0])
 
         # Distance to the line in 3D; z components are all zero
-        dist = np.linalg.norm(np.cross(p2 - p1, p0 - p1)) / np.linalg.norm(p2 - p1)
+        dist = np.linalg.norm(np.cross(end_point - start_point, moving_point - start_point)) / np.linalg.norm(p2 - p1)
         distances.append(dist)
 
     distances = np.array(distances)
     knee_index = np.argmax(distances)
-    return x[knee_index]
+    return x_coords[knee_index]
 
 
 def cluster_valid(cluster_partition: np.ndarray, dim: int) -> bool:
