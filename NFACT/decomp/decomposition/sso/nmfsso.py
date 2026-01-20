@@ -30,7 +30,10 @@ warnings.filterwarnings("ignore")
 
 @ignore_warnings(category=ConvergenceWarning)
 def nmf_decomp(
-    parameters: dict, fdt_matrix: np.ndarray, W_mat=None, H_mat=None
+    parameters: dict,
+    fdt_matrix: np.ndarray,
+    W_mat: np.ndarray = None,
+    H_mat: np.ndarray = None,
 ) -> dict:
     """
     Function to perform NMF.
@@ -42,6 +45,12 @@ def nmf_decomp(
     fdt_matrix: np.ndarray
         matrix to perform decomposition
         on
+    W_mat: ndarray
+        previous W matrix to initiate
+        an NMF run on
+    H_mat: ndarray
+        previous H matrix to initiate
+        an NMF run on
 
     Returns
     -------
@@ -206,7 +215,7 @@ class NMFsso:
         """
 
         nmf_sso_results = self._results()
-        for iterat in range(colours):
+        for iterat in range(self.num_int):
             nprint(
                 f"{self.col['pink']}Run: {self.col['reset']}{iterat + 1}/{self.num_int}"
             )
