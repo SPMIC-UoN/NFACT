@@ -29,7 +29,12 @@ warnings.filterwarnings("ignore")
 
 
 @ignore_warnings(category=ConvergenceWarning)
-def nmf_decomp(parameters: dict, fdt_matrix: np.ndarray, W=None, H=None) -> dict:
+def nmf_decomp(
+    parameters: dict,
+    fdt_matrix: np.ndarray,
+    W_mat: np.ndarray = None,
+    H_mat: np.ndarray = None,
+) -> dict:
     """
     Function to perform NMF.
 
@@ -40,6 +45,12 @@ def nmf_decomp(parameters: dict, fdt_matrix: np.ndarray, W=None, H=None) -> dict
     fdt_matrix: np.ndarray
         matrix to perform decomposition
         on
+    W_mat: ndarray
+        previous W matrix to initiate
+        an NMF run on
+    H_mat: ndarray
+        previous H matrix to initiate
+        an NMF run on
 
     Returns
     -------
@@ -47,13 +58,13 @@ def nmf_decomp(parameters: dict, fdt_matrix: np.ndarray, W=None, H=None) -> dict
         dictionary of grey and white matter
         components
     """
-    if W is not None and H is not None:
+    if W_mat is not None and H_mat is not None:
         parameters = parameters.copy()
         parameters["init"] = "custom"
 
     decomp = NMF(**parameters)
     try:
-        grey_matter = decomp.fit_transform(fdt_matrix, W=W, H=H)
+        grey_matter = decomp.fit_transform(fdt_matrix, W=W_mat, H=H_mat)
     except Exception as e:
         error_and_exit(False, f"Unable to perform NMF due to {e}")
     return {"grey_components": grey_matter, "white_components": decomp.components_}
@@ -204,9 +215,9 @@ class NMFsso:
         """
 
         nmf_sso_results = self._results()
-        for iterat in range(colours):
+        for iterat in range(self.num_int):
             nprint(
-                f"{self.col['pink']}Run: {self.col['reset']}{iterat+1}/{self.num_int}"
+                f"{self.col['pink']}Run: {self.col['reset']}{iterat + 1}/{self.num_int}"
             )
             self.nmf_params["random_state"] = None
             nmf_state = nmf_decomp(self.nmf_params, self.fdt_mat)

@@ -30,8 +30,8 @@ Input needed for volume mode:
 Warps must be ordered Standard2diff and Diff2standard. If your target fdt paths doesn't match up to the template then it is most likely the warps being the wrong way around.
 
 Optional NFACT_PP inputs:
-- A seed reference space to define seed space used by probtrackx. Default is Human MNI. 
-- Target image. Can be a whole brain or an ROI. Recommend to downsampled (or else matrix is huge!!) see below for downsampling. Default is seed reference space. 
+    - A seed reference space to define seed space used by probtrackx. Default is Human MNI. 
+    - Target image. Can be a whole brain or an ROI. Recommend to downsampled (or else matrix is huge!!) see below for downsampling. Default is seed reference space. 
 
 
 Input folder
