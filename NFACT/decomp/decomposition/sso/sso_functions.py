@@ -292,7 +292,9 @@ def calculate_elbow(merge_dist: np.ndarray) -> float:
         moving_point = np.array([x_coords_point, y_coords_point, 0.0])
 
         # Distance to the line in 3D; z components are all zero
-        dist = np.linalg.norm(np.cross(end_point - start_point, moving_point - start_point)) / np.linalg.norm(p2 - p1)
+        dist = np.linalg.norm(
+            np.cross(end_point - start_point, moving_point - start_point)
+        ) / np.linalg.norm(end_point - start_point)
         distances.append(dist)
 
     distances = np.array(distances)
