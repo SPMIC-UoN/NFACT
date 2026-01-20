@@ -366,6 +366,6 @@ def nmf_sso(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
     parameters["n_components"] = centroids.shape[0]
     w_mat = np.ascontiguousarray(g_components[:, centroids])
     h_mat = np.ascontiguousarray(w_components[centroids, :])
-    final_nmf = nmf_decomp(parameters, fdt_matrix, W=w_mat, H=h_mat)
+    final_nmf = nmf_decomp(parameters, fdt_matrix, W_mat=w_mat, H_mat=h_mat)
     nmf_sso_output_wrapper(args["outdir"], sim, dis, partitions, centroids)
     return final_nmf
