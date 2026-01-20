@@ -56,6 +56,7 @@ def build_cluster_command(
     sub_id: str,
     roi: str,
     parallel: str,
+    threshold_val: str,
 ) -> list:
     """
     Function to build out cluster
@@ -65,15 +66,24 @@ def build_cluster_command(
     ----------
     fdt_path: str
         path to subjects fdt_path
-
-    output_dir: str,
-    component_path: str,
-    group_average_path: str,
-    algo: str,
-    seeds: str,
-    sub_id: str,
-    roi: str,
+    output_dir: str
+        path to output dir
+    component_path: str
+        path to components
+    group_average_path: str
+        path to group averages
+    algo: str
+        whaich algo, NMF or ICA
+    seeds: str
+        seeds to use
+    sub_id: str
+        subject id
+    roi: str
+        rois to use
     parallel: str
+        number of parallelizations.
+    threshold_val: str
+        value to threshold components at
 
     Returns
     -------
@@ -102,6 +112,8 @@ def build_cluster_command(
         "--roi",
         *roi,
         "--dscalar",
+        "--threshold",
+        str(threshold_val),
     ]
     if parallel:
         command.extend(["--parallel", str(parallel)])
@@ -140,6 +152,7 @@ def submit_to_cluster(args: dict, paths: dict) -> list:
             sub_id,
             args["roi"],
             args["n_cores"],
+            args["threshold"],
         )
         id = cluster_submission(
             cluster_command,
