@@ -55,8 +55,10 @@ def build_cluster_command(
     seeds: str,
     sub_id: str,
     roi: str,
-    parallel: str,
     threshold_val: str,
+    parallel: str,
+    normalize: bool,
+    dscalar: bool,
 ) -> list:
     """
     Function to build out cluster
@@ -80,11 +82,14 @@ def build_cluster_command(
         subject id
     roi: str
         rois to use
-    parallel: str
-        number of parallelizations.
     threshold_val: str
         value to threshold components at
-
+    parallel: str
+        number of parallelizations.
+    normalize: bool
+        should noramlized maps be saved
+    dscalar: bool
+        is this a cifti
     Returns
     -------
     list: list object
@@ -111,12 +116,15 @@ def build_cluster_command(
         str(sub_id),
         "--roi",
         *roi,
-        "--dscalar",
         "--threshold",
         str(threshold_val),
     ]
     if parallel:
         command.extend(["--parallel", str(parallel)])
+    if normalize:
+        command.extend(["--normalize"])
+    if dscalar:
+        command.extend(["--dscalar"])
     return command
 
 
@@ -151,8 +159,10 @@ def submit_to_cluster(args: dict, paths: dict) -> list:
             args["seeds"],
             sub_id,
             args["roi"],
-            args["n_cores"],
             args["threshold"],
+            args["n_cores"],
+            args["normalise"],
+            args["cifti"],
         )
         id = cluster_submission(
             cluster_command,
