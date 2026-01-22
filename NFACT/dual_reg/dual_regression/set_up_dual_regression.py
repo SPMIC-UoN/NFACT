@@ -57,7 +57,7 @@ def build_cluster_command(
     roi: str,
     threshold_val: str,
     parallel: str,
-    normalize: bool,
+    normalise: bool,
     dscalar: bool,
 ) -> list:
     """
@@ -86,7 +86,7 @@ def build_cluster_command(
         value to threshold components at
     parallel: str
         number of parallelizations.
-    normalize: bool
+    normalise: bool
         should noramlized maps be saved
     dscalar: bool
         is this a cifti
@@ -121,8 +121,8 @@ def build_cluster_command(
     ]
     if parallel:
         command.extend(["--parallel", str(parallel)])
-    if normalize:
-        command.extend(["--normalize"])
+    if normalise:
+        command.extend(["--normalise"])
     if dscalar:
         command.extend(["--dscalar"])
     return command
