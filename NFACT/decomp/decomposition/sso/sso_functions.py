@@ -6,6 +6,24 @@ import warnings
 
 warnings.simplefilter("ignore", UserWarning)
 
+# Functions to silence Tensorflow
+import os
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["XLA_FLAGS"] = "--xla_gpu_cuda_data_dir="
+
+try:
+    import tensorflow as tf
+
+    # Force CPU-only execution
+    tf.get_logger().setLevel("ERROR")
+    tf.config.set_visible_devices([], "GPU")
+except Exception:
+    pass
+from umap.parametric_umap import ParametricUMAP
+
 
 def projection(dis) -> np.ndarray:
     """
@@ -22,10 +40,8 @@ def projection(dis) -> np.ndarray:
     np.ndarray: array
         array of projections
     """
-    projection = TSNE(
-        n_components=2, metric="precomputed", init="random", random_state=42
-    )
-    return projection.fit_transform(dis)
+    embedder = ParametricUMAP(metric="precomputed")
+    return embedder.fit(dis, precomputed_distances=dis).embedding_
 
 
 def rownorm(nmf_mat: np.ndarray):
