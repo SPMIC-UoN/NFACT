@@ -4,7 +4,6 @@ from scipy.spatial.distance import squareform
 from NFACT.base.utils import error_and_exit
 import warnings
 
-warnings.simplefilter("ignore", UserWarning)
 
 # Functions to silence Tensorflow
 import os
@@ -23,6 +22,8 @@ try:
 except Exception:
     pass
 from umap.parametric_umap import ParametricUMAP
+
+warnings.simplefilter("ignore", UserWarning)
 
 
 def projection(dis) -> np.ndarray:
