@@ -529,5 +529,7 @@ def cluster_scores(sim: np.ndarray, partitions: np.ndarray) -> dict:
     return {
         "clusternumber": clusternumber[order],
         "number_in_cluster": cluster_stat["N"][order],
-        "score": cluster_scores["mean_score"][order],
+        "internal_score": cluster_scores["mean_score"][order],
+        "between_score": cluster_scores["minmax_score"][order],
+        "internal_avg": cluster_scores["mean_in_score"],
     }

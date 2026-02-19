@@ -9,7 +9,7 @@ from NFACT.decomp.decomposition.sso.sso_functions import (
 from NFACT.decomp.decomposition.sso.sso_plotting import (
     plot_matrix,
     plot_cluster_stats,
-    plot_network,
+    NMFgraph,
 )
 from NFACT.base.utils import error_and_exit, nprint, colours
 from NFACT.base.matrix_handling import thresholding
@@ -304,6 +304,14 @@ def nmf_sso_output_wrapper(
         plotting_output = os.path.join(output_dir, "nfact_decomp", "sso_output")
         coords = projection(dis)
         clust_score = cluster_scores(sim, partitions)
+        NMFgraph(
+            proj=coords,
+            labels=partitions,
+            internal_average=clust_score["internal_avg"],
+            centroid_indices=centroids,
+            output_dir=os.path.join(plotting_output, "cluster_network.tiff").plot(),
+        )
+        del clust_score["internal_avg"]
         nmf_cluster_stats_csv(clust_score, plotting_output)
         plot_matrix(
             os.path.join(plotting_output, "similarity_matrix.tiff"),
@@ -319,13 +327,7 @@ def nmf_sso_output_wrapper(
             clust_score,
             os.path.join(plotting_output, "cluster_stats.tiff"),
         )
-        plot_network(
-            coords,
-            partitions,
-            sim,
-            centroids,
-            os.path.join(plotting_output, "cluster_network.tiff"),
-        )
+
     except Exception as e:
         nprint(f"Unable to save graphs due to: {e}")
 
