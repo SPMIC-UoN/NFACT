@@ -5,7 +5,7 @@ from matplotlib.patches import Polygon, Circle, Rectangle
 from matplotlib import patheffects
 from matplotlib.lines import Line2D
 import seaborn as sns
-from scipy.spatial import ConvexHull, distance_matrix, KDTree
+from scipy.spatial import ConvexHull, distance_matrix, KDTree, distance
 from scipy.interpolate import splprep, splev
 from scipy.optimize import minimize
 from sklearn.decomposition import PCA
