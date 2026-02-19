@@ -134,6 +134,35 @@ def check_algo(algo: str) -> str:
     return algo.lower()
 
 
+def previous_matrix(basename: str) -> list:
+    """
+    Function to provide list of subjects
+    with a previous matrix
+
+    Parameters
+    -----------
+
+    Returns
+    --------
+    file_list: list object
+        list of file paths with first being
+        the main file, average matrix coords_for_fdt_matrix2,
+        lookup_tractspace_fdt_matrix2.nii.gz,
+        tract_space_coords_for_fdt_matrix2
+    """
+    file_list = [
+        os.path.join(basename, file)
+        for file in [
+            "average_matrix2.npy",
+            "coords_for_fdt_matrix2",
+            "lookup_tractspace_fdt_matrix2.nii.gz",
+            "tract_space_coords_for_fdt_matrix2",
+        ]
+    ]
+    file_list.insert(0, basename)
+    return file_list
+
+
 def get_subjects(args: dict, key_name: str = "ptxdir") -> dict:
     """
     Function to get subjects directly from
@@ -158,7 +187,10 @@ def get_subjects(args: dict, key_name: str = "ptxdir") -> dict:
         does_list_of_subjects_exist(args["list_of_subjects"]),
         "List of subjects doesn't exist",
     )
-    args[key_name] = return_list_of_subjects_from_file(args["list_of_subjects"])
+    if "average_matrix2.npy" in args["list_of_subjects"]:
+        args[key_name] = previous_matrix(os.path.dirname(args["list_of_subjects"]))
+    else:
+        args[key_name] = return_list_of_subjects_from_file(args["list_of_subjects"])
     return args
 
 

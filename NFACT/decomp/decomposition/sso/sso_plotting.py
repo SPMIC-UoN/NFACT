@@ -90,7 +90,7 @@ class NMFgraph:
         self, numb_colours: int, red_intensity: float = 1.0, gamma: float = 0.1
     ) -> np.ndarray:
         """
-        Function to get red map colouring
+        Method to get red map colouring
 
         Parameters
         ----------
@@ -115,23 +115,40 @@ class NMFgraph:
         cmap = cmap**gamma
         return cmap.astype(np.float32)
 
-    def _set_cluster_colours(self):
-        # EXACT function logic
+    def _set_cluster_colours(self) -> np.ndarray:
+        """
+        Method to assign colour based on
+        quartiles
+
+        Returns
+        -------
+
+        """
         cluster_color_idx = np.zeros(len(self.internal_average), dtype=int)
-        for i, val in enumerate(self.internal_average):
+        for index, val in enumerate(self.internal_average):
             if val <= self.thresholds[0]:
-                cluster_color_idx[i] = 1
+                cluster_color_idx[index] = 1
             elif val <= self.thresholds[1]:
-                cluster_color_idx[i] = 2
+                cluster_color_idx[index] = 2
             elif val <= self.thresholds[2]:
-                cluster_color_idx[i] = 3
+                cluster_color_idx[index] = 3
             else:
-                cluster_color_idx[i] = 4
+                cluster_color_idx[index] = 4
         return cluster_color_idx
 
     # ------------------ SORTING ------------------
 
-    def _compute_cluster_metadata(self):
+    def _compute_cluster_metadata(self) -> list:
+        """
+        Method to compute hull size and
+        data for sorting
+
+        Returns
+        -------
+        list: list object
+            list of dictionaries
+            containing meta data
+        """
         unique_labels = np.unique(self.labels)
         meta = []
 
@@ -147,7 +164,7 @@ class NMFgraph:
 
             meta.append(
                 {
-                    "indices": cluster_indices,  # ← FIX: store array of indices
+                    "indices": cluster_indices,
                     "label": lab,
                     "area": area,
                 }
@@ -155,40 +172,53 @@ class NMFgraph:
 
         return meta
 
-    def _sorted_metadata(self):
+    def _sorted_metadata(self) -> list:
+        """
+        Method to order clusters
+        by size so smallest are at the front
+
+        Returns
+        --------
+        list: list object
+            list of sorted metadata
+        """
         return sorted(
             self._compute_cluster_metadata(), key=lambda x: x["area"], reverse=True
         )
 
     # ------------------ GEOMETRY ------------------
 
-    def _enforce_containment(self, cluster_pts, hull_pts, max_iter=50):
+    def _enforce_containment(
+        self, cluster_pts: np.ndarray, hull_pts: np.ndarray, max_iter: int = 50
+    ) -> np.ndarray:
+        """
+        Method to ensure all cluster points are contained
+        within a convex hull
+        """
         for _ in range(max_iter):
             mask = self._convex_contains(cluster_pts, hull_pts)
             if np.all(mask):
                 return hull_pts
+
             centroid = hull_pts.mean(axis=0)
             new_hull = []
-
-            for v in hull_pts:
-                direction = v - centroid
+            for vertex in hull_pts:
+                direction = vertex - centroid
                 direction /= np.linalg.norm(direction)
-                new_v = v + direction * 0.01 * np.linalg.norm(v - centroid)
-                new_hull.append(new_v)
+                new_vertex = vertex + direction * 0.01 * np.linalg.norm(
+                    vertex - centroid
+                )
+                new_hull.append(new_vertex)
             hull_pts = np.array(new_hull)
         return cluster_pts[ConvexHull(cluster_pts).vertices]
 
     def _smooth_closed_curve(self, points, n_points=150, s=0.0):
         points = np.array(points)
-
         _, unique_indices = np.unique(points, axis=0, return_index=True)
-
         points = points[np.sort(unique_indices)]
         if not np.allclose(points[0], points[-1]):
             points = np.vstack([points, points[0]])
-
-        tck, u = splprep([points[:, 0], points[:, 1]], s=s, per=True)
-
+        tck, _ = splprep([points[:, 0], points[:, 1]], s=s, per=True)
         u_fine = np.linspace(0, 1, n_points)
         x_smooth, y_smooth = splev(u_fine, tck)
         return np.c_[x_smooth, y_smooth]
@@ -717,7 +747,7 @@ class NMFgraph:
         self._add_legend()
         self._add_title()
         plt.savefig(self.output_dir, format="tiff", dpi=300, bbox_inches="tight")
-        plt.close()
+        plt.close(self.fig)
 
 
 def plot_matrix(file_path: str, mat: np.ndarray, title: str) -> None:

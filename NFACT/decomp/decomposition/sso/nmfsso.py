@@ -301,7 +301,9 @@ def nmf_sso_output_wrapper(
     None
     """
     try:
+        col = colours()
         plotting_output = os.path.join(output_dir, "nfact_decomp", "sso_output")
+        nprint(f"{col['light_pink']}Obtaining Projections{col['reset']}")
         coords = projection(dis)
         clust_score = cluster_scores(sim, partitions)
         NMFgraph(
@@ -309,8 +311,8 @@ def nmf_sso_output_wrapper(
             labels=partitions,
             internal_average=clust_score["internal_avg"],
             centroid_indices=centroids,
-            output_dir=os.path.join(plotting_output, "cluster_network.tiff").plot(),
-        )
+            output_dir=os.path.join(plotting_output, "cluster_network.tiff"),
+        ).plot()
         del clust_score["internal_avg"]
         nmf_cluster_stats_csv(clust_score, plotting_output)
         plot_matrix(

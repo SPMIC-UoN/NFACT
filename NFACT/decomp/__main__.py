@@ -67,6 +67,9 @@ def nfact_decomp_main(args: dict = None) -> None:
         print(
             f"{col['plum']}Cifti option given:{col['reset']} Seeds must be in correct order"
         )
+    if args["matrix"]:
+        args["list_of_subjects"] = os.path.join(args["matrix"], "average_matrix2.npy")
+
     # Do argument checking
     check_arguments(args, ["list_of_subjects", "dim", "seeds", "outdir"])
     args["algo"] = check_algo(args["algo"])
@@ -75,7 +78,8 @@ def nfact_decomp_main(args: dict = None) -> None:
     # check subjects exist
     args = get_subjects(args)
     check_subject_exist(args["ptxdir"])
-    print(f"{col['plum']}Number of Subjects:{col['reset']}", len(args["ptxdir"]))
+    number_subjects = "User Overide Matrix" if args["matrix"] else len(args["ptxdir"])
+    print(f"{col['plum']}Number of Subjects:{col['reset']}", number_subjects)
 
     group_mode = True if len(args["ptxdir"]) > 1 else False
     # process seeds
@@ -119,6 +123,13 @@ def nfact_decomp_main(args: dict = None) -> None:
     matrix_time.tic()
     print_str = f"{col['pink']}NFACT Matrix:{col['reset']}"
     fdt_2_conn = None
+
+    if args["matrix"]:
+        nprint(f"{print_str} Loading user given matrix")
+        fdt_2_conn = load_previous_matrix(
+            os.path.join(args["matrix"], "average_matrix2.npy")
+        )
+
     if os.path.exists(
         os.path.join(
             args["outdir"], "nfact_decomp", "group_averages", "average_matrix2.npy"
