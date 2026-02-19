@@ -2,7 +2,9 @@ import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import squareform
 from NFACT.base.utils import error_and_exit
-from sklearn.manifold import TSNE
+import warnings
+
+warnings.simplefilter("ignore", UserWarning)
 
 
 def projection(dis) -> np.ndarray:
