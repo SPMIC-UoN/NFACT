@@ -673,21 +673,21 @@ class NMFgraph:
                 distance_next = np.linalg.norm(hull_point - next_point)
 
                 # only inflate if below threshold
-                for distance, _ in zip(
+                for point_distance, _ in zip(
                     [distance_prev, distance_next], [prev_point, next_point]
                 ):
                     excess_needed = (
-                        min_distance - distance
+                        min_distance - point_distance
                     )  # how much we need to expand
                     vertex_step = np.clip(excess_needed * 0.5, 0, max_step)
-                    if distance < min_distance:
+                    if point_distance < min_distance:
                         # direction from centroid to vertex
-                        direction = hull_point - centroid
-                        direction_norm = np.linalg.norm(direction)
+                        point_distance = hull_point - centroid
+                        direction_norm = np.linalg.norm(point_distance)
                         if direction_norm > 0:
-                            direction /= direction_norm
+                            point_distance /= direction_norm
                             # nudge by a small step
-                            hull_pts[index] += direction * vertex_step
+                            hull_pts[index] += point_distance * vertex_step
                             moved = True
 
             if not moved:
