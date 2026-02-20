@@ -163,7 +163,7 @@ def nfact_decomp_args() -> dict:
         default=0,
         help="""
         Value at which to threshold Components
-        at. Default is to do no thresholding.
+        at. Default is to not do thresholding.
         """,
     )
     ica_options = base_args.add_argument_group(
