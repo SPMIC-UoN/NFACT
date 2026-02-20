@@ -648,8 +648,9 @@ class NMFgraph:
 
         Returns
         -------
-        hull_pts : (N,2) array
-            Adjusted hull vertices satisfying minimum distance constraint.
+        hull_pts: np.ndarray array
+            Adjusted hull vertices
+            satisfying minimum distance constraint.
         """
         hull_length = len(hull_pts)
         avg_edge_length = np.mean(
