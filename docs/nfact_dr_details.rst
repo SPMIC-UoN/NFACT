@@ -71,6 +71,8 @@ Dual Regression options:
     Normalise components by scaling.
   -D, --dscalar 
     Save GM as cifti dscalar. Seeds must be left and right surfaces with an optional nifti for subcortical structures
+  -t, --threshold
+    Value at which to threshold Components at. Default is not to do thresholding.
 
 Parallel Processing options:
   -n, --n_cores 

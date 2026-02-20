@@ -30,6 +30,17 @@ def nfact_decomp_args() -> dict:
     )
     seed_roi_args(decomp_input)
     decomp_input.add_argument(
+        "-m",
+        "--matrix",
+        dest="matrix",
+        default=False,
+        help="""
+        Absolute path to a previously averaged group folder. NFACT will use this matrix,
+        average_matrix2, coords_for_fdt_matrix2 and tract_space_coords
+        and lookup_tractspace.nii.gz files in the decomposition.
+        """,
+    )
+    decomp_input.add_argument(
         "-f",
         "--config_file",
         dest="config",
@@ -41,6 +52,7 @@ def nfact_decomp_args() -> dict:
         Please see sckit learn documentation for NMF and FASTICA for further details
         """,
     )
+
     decomp_args = base_args.add_argument_group(
         f"{col['pink']}Decomposition options{col['reset']}"
     )
@@ -148,10 +160,10 @@ def nfact_decomp_args() -> dict:
         "-t",
         "--threshold",
         dest="threshold",
-        default=3,
+        default=0,
         help="""
         Value at which to threshold Components
-        at. Set to 0 to do no thresholding.
+        at. Default is to not do thresholding.
         """,
     )
     ica_options = base_args.add_argument_group(

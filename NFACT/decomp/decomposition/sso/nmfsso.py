@@ -5,11 +5,12 @@ from NFACT.decomp.decomposition.sso.sso_functions import (
     idx2centrotype,
     projection,
     cluster_scores,
+    cumulative_variance,
 )
 from NFACT.decomp.decomposition.sso.sso_plotting import (
     plot_matrix,
     plot_cluster_stats,
-    plot_network,
+    NMFgraph,
 )
 from NFACT.base.utils import error_and_exit, nprint, colours
 from NFACT.base.matrix_handling import thresholding
@@ -278,6 +279,7 @@ def nmf_sso_output_wrapper(
     dis: np.ndarray,
     partitions: np.ndarray,
     centroids: np.ndarray,
+    variance: dict,
 ) -> None:
     """
     Function wrapper around plotting different
@@ -301,9 +303,23 @@ def nmf_sso_output_wrapper(
     None
     """
     try:
+        col = colours()
         plotting_output = os.path.join(output_dir, "nfact_decomp", "sso_output")
+        nprint(f"{col['light_pink']}Obtaining Projections{col['reset']}")
         coords = projection(dis)
         clust_score = cluster_scores(sim, partitions)
+        NMFgraph(
+            proj=coords,
+            labels=partitions,
+            internal_average=clust_score["internal_avg"],
+            centroid_indices=centroids,
+            output_dir=os.path.join(plotting_output, "cluster_network.tiff"),
+        ).plot()
+        del clust_score["internal_avg"]
+        clust_score["cumulative_r2"] = variance["cumulative_r2"][
+            clust_score["clusternumber"] - 1
+        ]
+        clust_score["per_comp"] = variance["per_comp"][clust_score["clusternumber"] - 1]
         nmf_cluster_stats_csv(clust_score, plotting_output)
         plot_matrix(
             os.path.join(plotting_output, "similarity_matrix.tiff"),
@@ -319,13 +335,7 @@ def nmf_sso_output_wrapper(
             clust_score,
             os.path.join(plotting_output, "cluster_stats.tiff"),
         )
-        plot_network(
-            coords,
-            partitions,
-            sim,
-            centroids,
-            os.path.join(plotting_output, "cluster_network.tiff"),
-        )
+
     except Exception as e:
         nprint(f"Unable to save graphs due to: {e}")
 
@@ -367,5 +377,10 @@ def nmf_sso(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
     w_mat = np.ascontiguousarray(g_components[:, centroids])
     h_mat = np.ascontiguousarray(w_components[centroids, :])
     final_nmf = nmf_decomp(parameters, fdt_matrix, W_mat=w_mat, H_mat=h_mat)
-    nmf_sso_output_wrapper(args["outdir"], sim, dis, partitions, centroids)
+    col = colours()
+    print(f"{col['light_pink']}Calculating Variance Explained{col['reset']}\n")
+    variance = cumulative_variance(
+        fdt_matrix, final_nmf["grey_components"], final_nmf["white_components"]
+    )
+    nmf_sso_output_wrapper(args["outdir"], sim, dis, partitions, centroids, variance)
     return final_nmf

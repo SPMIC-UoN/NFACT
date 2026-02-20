@@ -2,7 +2,28 @@ import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import squareform
 from NFACT.base.utils import error_and_exit
-from sklearn.manifold import TSNE
+import warnings
+
+
+# Functions to silence Tensorflow
+import os
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["XLA_FLAGS"] = "--xla_gpu_cuda_data_dir="
+
+try:
+    import tensorflow as tf
+
+    # Force CPU-only execution
+    tf.get_logger().setLevel("ERROR")
+    tf.config.set_visible_devices([], "GPU")
+except Exception:
+    pass
+from umap.parametric_umap import ParametricUMAP
+
+warnings.simplefilter("ignore", UserWarning)
 
 
 def projection(dis) -> np.ndarray:
@@ -20,10 +41,8 @@ def projection(dis) -> np.ndarray:
     np.ndarray: array
         array of projections
     """
-    projection = TSNE(
-        n_components=2, metric="precomputed", init="random", random_state=42
-    )
-    return projection.fit_transform(dis)
+    embedder = ParametricUMAP(metric="precomputed")
+    return embedder.fit(dis, precomputed_distances=dis).embedding_
 
 
 def rownorm(nmf_mat: np.ndarray):
@@ -510,5 +529,47 @@ def cluster_scores(sim: np.ndarray, partitions: np.ndarray) -> dict:
     return {
         "clusternumber": clusternumber[order],
         "number_in_cluster": cluster_stat["N"][order],
-        "score": cluster_scores["mean_score"][order],
+        "internal_score": cluster_scores["mean_score"][order],
+        "between_score": cluster_scores["minmax_score"][order],
+        "internal_avg": cluster_scores["mean_in_score"],
+    }
+
+
+def cumulative_variance(
+    fdt_mat: np.ndarray, grey: np.ndarray, white: np.ndarray
+) -> dict:
+    """
+    Function to calculate total variance
+    explained by adding on additional component
+    and
+
+    Parameters
+    ------------
+    fdt_mat: np.ndarray
+        orginal fdt matrix
+    grey: np.ndarray
+        grey matter NMF
+    white: np.ndarray
+        White matter NMF
+
+    Returns
+    -------
+    dict: dictionary object
+        dict of cummilative_r2 and
+        per_comp (how much extra variation
+        is explained by adding that component)
+    """
+    n_components = white.shape[0]
+    ss_total = np.sum((fdt_mat - fdt_mat.mean()) ** 2)
+    X_recon_cum = np.zeros_like(fdt_mat)
+    r2_cumulative = []
+
+    for comp in range(n_components):
+        X_recon_cum += np.outer(grey[:, comp], white[comp, :])
+        ss_resid = np.sum((fdt_mat - X_recon_cum) ** 2)
+        r2_cumulative.append(1 - ss_resid / ss_total)
+
+    return {
+        "cumulative_r2": np.array(r2_cumulative),
+        "per_comp": np.diff(np.concatenate([[0], np.array(r2_cumulative)])),
     }

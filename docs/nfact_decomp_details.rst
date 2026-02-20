@@ -73,6 +73,8 @@ Decomposition inputs:
   -r, --roi 
     Absolute path to a text file containing the absolute path ROI(s) paths to restrict seeding to (e.g. medial wall masks). This is not needed if seeds are not surfaces. 
     If used nfact_pp then this is the roi_for_decomp.txt file in the nfact_pp directory.
+  -m, --matrix 
+    Absolute path to a previously averaged group folder. NFACT will use this matrix, average_matrix2, coords_for_fdt_matrix2 and tract_space_coords and lookup_tractspace.nii.gz files in the decomposition.
   -f, --config_file 
     Absolute path to a configuration file. Congifuration file provides available hyperparameters for ICA and NMF. 
     Use nfact_config -D to create a config file. Please see sckit learn documentation for NMF and FASTICA for further details
@@ -102,7 +104,7 @@ Output options:
   -N, --normalise 
     Convert component values into Z scores and saves map. This is useful for visualization
   -t, --threshold 
-    Value at which to threshold Components at. Set to 0 to do no thresholding.
+    Value at which to threshold Components at. Default is to not do thresholding.
 
 ICA options:
   -c, --components 
