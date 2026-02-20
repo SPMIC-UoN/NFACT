@@ -533,3 +533,43 @@ def cluster_scores(sim: np.ndarray, partitions: np.ndarray) -> dict:
         "between_score": cluster_scores["minmax_score"][order],
         "internal_avg": cluster_scores["mean_in_score"],
     }
+
+
+def cumulative_variance(
+    fdt_mat: np.ndarray, grey: np.ndarray, white: np.ndarray
+) -> dict:
+    """
+    Function to calculate total variance
+    explained by adding on additional component
+    and
+
+    Parameters
+    ------------
+    fdt_mat: np.ndarray
+        orginal fdt matrix
+    grey: np.ndarray
+        grey matter NMF
+    white: np.ndarray
+        White matter NMF
+
+    Returns
+    -------
+    dict: dictionary object
+        dict of cummilative_r2 and
+        per_comp (how much extra variation
+        is explained by adding that component)
+    """
+    n_components = white.shape[0]
+    ss_total = np.sum((fdt_mat - fdt_mat.mean()) ** 2)
+    X_recon_cum = np.zeros_like(fdt_mat)
+    r2_cumulative = []
+
+    for comp in range(n_components):
+        X_recon_cum += np.outer(grey[:, comp], white[comp, :])
+        ss_resid = np.sum((fdt_mat - X_recon_cum) ** 2)
+        r2_cumulative.append(1 - ss_resid / ss_total)
+
+    return {
+        "cumulative_r2": np.array(r2_cumulative),
+        "per_comp": np.diff(np.concatenate([[0], np.array(r2_cumulative)])),
+    }
