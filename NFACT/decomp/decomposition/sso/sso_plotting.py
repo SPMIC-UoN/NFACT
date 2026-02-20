@@ -654,8 +654,10 @@ class NMFgraph:
         hull_length = len(hull_pts)
         avg_edge_length = np.mean(
             [
-                np.linalg.norm(hull_pts[i] - hull_pts[(i + 1) % hull_length])
-                for i in range(hull_length)
+                np.linalg.norm(
+                    hull_pts[hull_point] - hull_pts[(hull_point + 1) % hull_length]
+                )
+                for hull_point in range(hull_length)
             ]
         )
         max_step = 0.2 * avg_edge_length
