@@ -2,6 +2,8 @@ import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import squareform
 from NFACT.base.utils import error_and_exit
+from NFACT.base.imagehandling import save_white_matter, save_grey_matter_components
+from NFACT.base.filesystem import make_directory
 import warnings
 
 
@@ -573,3 +575,64 @@ def cumulative_variance(
         "cumulative_r2": np.array(r2_cumulative),
         "per_comp": np.diff(np.concatenate([[0], np.array(r2_cumulative)])),
     }
+
+
+def save_individual_components(
+    clusters: np.ndarray,
+    w_components: np.ndarray,
+    g_components: np.ndarray,
+    decomp_dir: str,
+    output_dir: str,
+    seed: list,
+    roi: list,
+    coord_path: str,
+    cifti_save: bool,
+) -> None:
+    """
+    Function to save individual clusters as
+    volumes.
+
+    Parameters
+    ----------
+    clusters: np.ndarray
+        list of cluster numbers
+    w_components: np.ndarray
+        array of white matter components
+    g_components: np.ndarray
+        array of grey matter components
+    decomp_dir: str
+        decomposition directory
+    output_dir: str
+        output directory
+    seed: list
+        list of seeds
+    roi: list
+        list of region of interest
+    coord_path: str
+        coords_for_fdt_matrix2 file
+    cifti_save: bool
+        should the grey matter seeds be
+        saved as ciftis
+    """
+    make_directory(output_dir, ignore_errors=True)
+    labels = np.unique(clusters)
+    for label in labels:
+        idx = np.where(clusters == label)[0]
+        w_cluster = w_components[idx, :]
+        g_cluster = g_components[idx, :]
+        save_white_matter(
+            w_cluster,
+            f"{decomp_dir}/lookup_tractspace_fdt_matrix2.nii.gz",
+            f"{decomp_dir}/tract_space_coords_for_fdt_matrix2",
+            f"{output_dir}/clusters/cluster_{label}_sso",
+        )
+        save_grey_matter_components(
+            grey_matter_components=g_cluster,
+            nfact_path="/",
+            directory=output_dir,
+            dim="sso",
+            cifti_save=cifti_save,
+            coord_path=coord_path,
+            roi=roi,
+            seeds=seed,
+        )

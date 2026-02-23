@@ -166,6 +166,17 @@ def nfact_decomp_args() -> dict:
         at. Default is to not do thresholding.
         """,
     )
+    output_args.add_argument(
+        "-CS",
+        "--cluster_save",
+        dest="cluster_save",
+        action="store_true",
+        default=False,
+        help="""
+        When doing sso save each cluster for each individual 
+        NMF into single white and grey matter runs
+        """,
+    )
     ica_options = base_args.add_argument_group(
         f"{col['purple']}ICA options{col['reset']}"
     )

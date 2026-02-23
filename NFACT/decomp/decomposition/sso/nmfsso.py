@@ -6,6 +6,7 @@ from NFACT.decomp.decomposition.sso.sso_functions import (
     projection,
     cluster_scores,
     cumulative_variance,
+    save_individual_components,
 )
 from NFACT.decomp.decomposition.sso.sso_plotting import (
     plot_matrix,
@@ -362,7 +363,7 @@ def nmf_sso(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
     """
     if args["no_sso"]:
         return nmf_decomp(parameters, fdt_matrix)
-
+    col = colours()
     nmfsso_est = NMFsso(fdt_matrix, args["iterations"], parameters, args["n_cores"])
     results_of_comp = nmfsso_est.run()
     w_components = np.vstack(results_of_comp["white"])
@@ -370,14 +371,31 @@ def nmf_sso(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
     sim = compute_similairty_matrix(w_components)
     dis = sim2dis(sim)
     partitions = clustering_components(dis, args["dim"])
+    if args["cluster_save"]:
+        print(f"{col['light_pink']}Saving individual clusters{col['reset']}\n")
+        nfact_decomp = os.path.join(args["outdir"], "nfact_decomp")
+        save_individual_components(
+            clusters=partitions,
+            w_components=w_components,
+            g_components=g_components,
+            decomp_dir=os.path.join(nfact_decomp, "group_averages"),
+            output_dir=os.path.join(nfact_decomp, "sso_output", "clusters"),
+            seed=args["seeds"],
+            roi=args["roi"],
+            coord_path=os.path.join(
+                nfact_decomp, "group_averages", "coords_for_fdt_matrix2"
+            ),
+            cifti_save=args["cifti"],
+        )
     centroids = idx2centrotype(sim, partitions)
     parameters["random_state"] = None
     parameters["init"] = "custom"
     parameters["n_components"] = centroids.shape[0]
     w_mat = np.ascontiguousarray(g_components[:, centroids])
     h_mat = np.ascontiguousarray(w_components[centroids, :])
+    print(f"{col['light_pink']}Initiating final NMF{col['reset']}\n")
     final_nmf = nmf_decomp(parameters, fdt_matrix, W_mat=w_mat, H_mat=h_mat)
-    col = colours()
+
     print(f"{col['light_pink']}Calculating Variance Explained{col['reset']}\n")
     variance = cumulative_variance(
         fdt_matrix, final_nmf["grey_components"], final_nmf["white_components"]
