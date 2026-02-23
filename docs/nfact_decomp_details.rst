@@ -105,6 +105,8 @@ Output options:
     Convert component values into Z scores and saves map. This is useful for visualization
   -t, --threshold 
     Value at which to threshold Components at. Default is to not do thresholding.
+  -CS, --cluster_save 
+    When doing sso save each cluster as nifti/gifti/cifti as 4D files with each 4D point as a single NMF run
 
 ICA options:
   -c, --components 
