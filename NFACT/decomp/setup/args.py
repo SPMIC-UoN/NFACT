@@ -173,8 +173,8 @@ def nfact_decomp_args() -> dict:
         action="store_true",
         default=False,
         help="""
-        When doing sso save each cluster for each individual 
-        NMF into single white and grey matter runs
+        When doing sso save each cluster as nifti/gifti/cifti
+        as 4D files with each 4D point as a single NMF run
         """,
     )
     ica_options = base_args.add_argument_group(
