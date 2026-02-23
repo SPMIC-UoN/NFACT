@@ -613,24 +613,28 @@ def save_individual_components(
     cifti_save: bool
         should the grey matter seeds be
         saved as ciftis
+
+    Returns
+    -------
+    None
     """
     make_directory(output_dir, ignore_errors=True)
     labels = np.unique(clusters)
     for label in labels:
         idx = np.where(clusters == label)[0]
         w_cluster = w_components[idx, :]
-        g_cluster = g_components[idx, :]
+        g_cluster = g_components[:, idx]
         save_white_matter(
             w_cluster,
             f"{decomp_dir}/lookup_tractspace_fdt_matrix2.nii.gz",
             f"{decomp_dir}/tract_space_coords_for_fdt_matrix2",
-            f"{output_dir}/clusters/cluster_{label}_sso",
+            f"{output_dir}/cluster_{label}_sso",
         )
         save_grey_matter_components(
             grey_matter_components=g_cluster,
             nfact_path="/",
             directory=output_dir,
-            dim="sso",
+            dim=f"{label}_sso",
             cifti_save=cifti_save,
             coord_path=coord_path,
             roi=roi,
