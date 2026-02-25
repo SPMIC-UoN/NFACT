@@ -87,10 +87,12 @@ class NMFgraph:
         self.centroids = self.proj[self.centroid_indices]
         self.dist_mat = distance_matrix(self.centroids, self.centroids)
 
-        # Must match function exactly
-        self.colours = self._red_colormap(5, 1, 0.8)
+        self.cmap = plt.get_cmap("magma")  # or "inferno", "plasma", "magma"
+        self.norm = mcolors.Normalize(
+            vmin=np.min(self.internal_average), vmax=np.max(self.internal_average)
+        )
         self.min_reliable_size = 5
-        self.unreliable_clusters = []
+        self.any_unreliable_clusters = False
 
     # ------------------ SETUP ------------------
 
@@ -128,68 +130,12 @@ class NMFgraph:
             self.proj[:, 0],
             self.proj[:, 1],
             s=self.point_size,
-            color=(0.20, 0.17, 0.27),
+            color=(0.20, 0.20, 0.27),
             edgecolor="grey",
             linewidths=0.5,
             zorder=3,
             alpha=0.6,
         )
-
-    # ------------------ COLOUR LOGIC ------------------
-    def _red_colormap(
-        self, numb_colours: int, red_intensity: float = 1.0, gamma: float = 0.1
-    ) -> np.ndarray:
-        """
-        Method to get red map colouring
-
-        Parameters
-        ----------
-        numb_colours: int
-           number of red shades
-        red_intensity: float
-           red colour intensity
-           default is 1.0
-        gamma: float
-            scaling factor
-            default is 0.1
-
-        Returns
-        -------
-        cmap: np.ndarray
-            colour maps
-        """
-        cmap = np.zeros((numb_colours, 3))
-        cmap[:, 0] = np.linspace(1, red_intensity**2, numb_colours)
-        cmap[:, 1] = np.linspace(1, 0, numb_colours)
-        cmap[:, 2] = cmap[:, 1]
-        cmap = cmap**gamma
-        return cmap.astype(np.float32)
-
-    def _set_cluster_colours(self) -> np.ndarray:
-        """
-        Method to assign colour based on
-        quartiles
-
-        Parameters
-        -----------
-        None
-
-        Returns
-        --------
-        None
-
-        """
-        cluster_color_idx = np.zeros(len(self.internal_average), dtype=int)
-        for index, val in enumerate(self.internal_average):
-            if val <= self.thresholds[0]:
-                cluster_color_idx[index] = 1
-            elif val <= self.thresholds[1]:
-                cluster_color_idx[index] = 2
-            elif val <= self.thresholds[2]:
-                cluster_color_idx[index] = 3
-            else:
-                cluster_color_idx[index] = 4
-        return cluster_color_idx
 
     # ------------------ SORTING ------------------
 
@@ -210,7 +156,6 @@ class NMFgraph:
         """
         unique_labels = np.unique(self.labels)
         meta = []
-
         for lab in unique_labels:
             cluster_indices = np.where(self.labels == lab)[0]
             pts = self.proj[cluster_indices]
@@ -220,7 +165,6 @@ class NMFgraph:
                 area = hull.area
             else:
                 area = 0.0
-
             meta.append(
                 {
                     "indices": cluster_indices,
@@ -228,7 +172,6 @@ class NMFgraph:
                     "area": area,
                 }
             )
-
         return meta
 
     def _sorted_metadata(self) -> list:
@@ -344,28 +287,18 @@ class NMFgraph:
         np.ndarray: array
 
         """
-        polygon_length = len(polygon)
-        inside = []
-        for point in points:
-            sign = None
-            is_inside = True
-            for polygon_point in range(polygon_length):
-                point_1 = polygon[polygon_point]
-                point_2 = polygon[(polygon_point + 1) % polygon_length]
-                edge = point_2 - point_1
-                to_point = point - point_1
-                cross = edge[0] * to_point[1] - edge[1] * to_point[0]
-                if abs(cross) < tol:
-                    continue
-                current_sign = np.sign(cross)
-                if sign is None:
-                    sign = current_sign
-                elif current_sign != sign:
-                    is_inside = False
-                    break
-
-            inside.append(is_inside)
-        return np.array(inside)
+        p2 = np.roll(polygon, -1, axis=0)
+        edges = p2 - polygon
+        to_points = points[:, None, :] - polygon[None, :, :]
+        cross = (
+            edges[None, :, 0] * to_points[:, :, 1]
+            - edges[None, :, 1] * to_points[:, :, 0]
+        )
+        cross[np.abs(cross) < tol] = 0
+        signs = np.sign(cross)
+        all_pos = np.all(signs >= 0, axis=1)
+        all_neg = np.all(signs <= 0, axis=1)
+        return all_pos | all_neg
 
     def _get_global_optimal_circular_inflation_params(
         self, all_points: np.ndarray
@@ -808,7 +741,7 @@ class NMFgraph:
         ring = Circle(
             centroid_pos,
             radius=self.uniform_radius,
-            edgecolor=[0.5, 0.5, 0],
+            edgecolor=[1, 0.6, 0],
             facecolor="none",
             linewidth=2,
             zorder=5,
@@ -816,7 +749,7 @@ class NMFgraph:
         self.ax.add_patch(ring)
 
     # ------------------ MAIN LOOP ------------------
-    def _plot_clusters(self, cluster_idx: np.ndarray) -> np.ndarray:
+    def _plot_clusters(self) -> np.ndarray:
         """
         Method to plot clusters
 
@@ -839,10 +772,13 @@ class NMFgraph:
         for meta in self._sorted_metadata():
             index = meta["indices"]
             lab = meta["label"]
-
+            cluster_position = self.label_to_position[lab]
             cluster_proj = self.proj[index]
+            centroid_pos = self.centroids[cluster_position]
             if len(cluster_proj) < self.min_reliable_size:
-                self.unreliable_clusters.append((lab, len(cluster_proj)))
+                self._add_unreliable_square(centroid_pos)
+                self._add_label(centroid_pos, lab)
+                self.any_unreliable_clusters = True
                 continue
 
             ratio, _ = self._compute_cluster_stats(cluster_proj)
@@ -868,9 +804,10 @@ class NMFgraph:
                 hull_pts, n_points=150, smooth=0.005
             )
             all_points.append(smooth_hull)
-            cluster_position = self.label_to_position[lab]
-            colour = self.colours[cluster_idx[cluster_position]]
-            centroid_pos = self.centroids[cluster_position]
+
+            cluster_stat = self.internal_average[cluster_position]
+            colour = self.cmap(self.norm(cluster_stat))
+
             self._add_core_hull(smooth_hull, colour)
             self._add_label(centroid_pos, lab)
             self._add_centroid_circle(centroid_pos)
@@ -973,14 +910,7 @@ class NMFgraph:
         -------
         None
         """
-        cmap = mcolors.ListedColormap(self.colours[1:5])
-        bounds = self.thresholds.tolist()
-        bounds[0] = self.internal_average.min()
-        bounds[-1] = self.internal_average.max()
-        bounds = np.round(bounds, 2)
-
-        norm = mcolors.BoundaryNorm(bounds, cmap.N + 1, clip=False)
-        sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm = cm.ScalarMappable(cmap=self.cmap, norm=self.norm)
         sm.set_array([])
 
         cbar = plt.colorbar(
@@ -1045,7 +975,7 @@ class NMFgraph:
                 color="none",
                 label="Centroid",
                 markerfacecolor="none",
-                markeredgecolor=[0.5, 0.5, 0],
+                markeredgecolor=[1, 0.6, 0],
                 markersize=10,
                 markeredgewidth=2,
             ),
@@ -1061,6 +991,21 @@ class NMFgraph:
                 markeredgewidth=0.5,
             ),
         ]
+
+        if self.any_unreliable_clusters:
+            legend_elements.append(
+                Line2D(
+                    [0],
+                    [0],
+                    marker="s",
+                    color="none",
+                    label="Unreliable Cluster",
+                    markerfacecolor="none",
+                    markeredgecolor=(1.0, 0.2, 0.2),
+                    markersize=10,
+                    markeredgewidth=2,
+                ),
+            )
 
         leg = self.ax.legend(
             handles=legend_elements,
@@ -1091,48 +1036,31 @@ class NMFgraph:
             pad=20,
         )
 
-    def _add_reliability_warning(self) -> None:
+    def _add_unreliable_square(self, centroid_pos: np.ndarray) -> None:
         """
-        Method to cluster warning
-        if cluster has <5 points.
+        Draw a red square around unreliable cluster centroid.
 
         Parameters
         ----------
-        None
-
-        Returns
-        -------
-        None
+        centroid_pos : np.ndarray
+            x, y centroid position
+        size_frac : float
+            fraction of map span used as square size
         """
 
-        if not self.unreliable_clusters:
-            return
-
-        warning_lines = [
-            "Warning: Small cluster sizes reduce projection reliability",
-            "",
-        ]
-
-        for lab, size in self.unreliable_clusters:
-            warning_lines.append(f"Cluster {lab}: n={size}")
-
-        warning_text = "\n".join(warning_lines)
-
-        self.fig.text(
-            0.02,  # left margin
-            0.02,  # bottom margin
-            warning_text,
-            fontsize=9,
-            color="orange",
-            ha="left",
-            va="bottom",
-            bbox=dict(
-                facecolor=(0.1, 0.1, 0.1, 0.95),
-                edgecolor="orange",
-                boxstyle="round,pad=0.4",
-            ),
-            zorder=1000,
+        half_size = self.uniform_radius
+        square = Rectangle(
+            (centroid_pos[0] - half_size, centroid_pos[1] - half_size),
+            width=half_size * 2,
+            height=half_size * 2,
+            fill=False,
+            edgecolor=(1.0, 0.2, 0.2),
+            linewidth=2.5,
+            linestyle="-",
+            zorder=9,
         )
+
+        self.ax.add_patch(square)
 
     # ------------------ PUBLIC API ------------------
 
@@ -1150,19 +1078,14 @@ class NMFgraph:
         """
         self._setup_axis()
         self._plot_points()
-
-        cluster_idx = self._set_cluster_colours()
         self._ring_radius()
-
-        all_points = self._plot_clusters(cluster_idx)
-
+        all_points = self._plot_clusters()
         self._add_padding(all_points)
         self._clear_axes()
         self._add_colourbar()
         self._add_rects()
         self._add_legend()
         self._add_title()
-        self._add_reliability_warning()
         plt.savefig(self.output_dir, format="tiff", dpi=300, bbox_inches="tight")
         plt.close(self.fig)
 
