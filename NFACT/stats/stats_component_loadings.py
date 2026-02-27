@@ -1,5 +1,6 @@
 from NFACT.base.imagehandling import imaging_type, get_cifti_data
 from NFACT.base.utils import nprint, colours, error_and_exit
+from NFACT.base.matrix_handling import thresholding
 import numpy as np
 import nibabel as nb
 import os
@@ -20,7 +21,11 @@ class Component_loading:
     """
 
     def __init__(
-        self, white_group_component_path: str, grey_group_component_path: list, dim: str
+        self,
+        white_group_component_path: str,
+        grey_group_component_path: list,
+        dim: str,
+        threshold: int,
     ) -> None:
         """
         Calculate component loadings
@@ -35,10 +40,13 @@ class Component_loading:
             components
         dim: str
             number of components
+        threshold: int
+            threshold value
         """
         self.white_group_component_path = white_group_component_path
         self.grey_group_component_path = grey_group_component_path
         self.dim = dim
+        self.threshold = threshold
 
     def run(self, subject_paths: list) -> dict[np.ndarray]:
         """
@@ -79,8 +87,15 @@ class Component_loading:
         """
         Method to Load group components
         """
-        self.group_white = self.__volume(self.white_group_component_path)
-        self.group_grey = self.__process_grey(self.grey_group_component_path)
+        group_white = self.__volume(self.white_group_component_path)
+        group_grey = self.__process_grey(self.grey_group_component_path)
+        self.group_white = self.__threshold_values(group_white)
+        self.group_grey = self.__threshold_values(group_grey)
+
+    def __threshold_values(self, array: np.ndarray):
+        if self.threshold > 0:
+            return thresholding(array, self.threshold)
+        return array
 
     def __process_grey(self, grey_paths: list) -> np.ndarray:
         """
@@ -249,11 +264,15 @@ class Component_loading:
         """
         subject_images = self.__get_subject_img(subject_path)
         w_subject = self.__volume(subject_images["white_component"][0])
+        if self.threshold > 0:
+            w_subject = self.__threshold_values(w_subject)
         w_subject_correlations = self.__correlating(
             w_subject, self.group_white, self.group_white_mean, self.group_white_std
         )
         del w_subject
         g_subject = self.__process_grey(subject_images["grey_components"])
+        if self.threshold > 0:
+            g_subject = self.__threshold_values(g_subject)
         g_subject_correlations = self.__correlating(
             g_subject, self.group_grey, self.group_grey_mean, self.group_grey_std
         )
@@ -323,7 +342,7 @@ def component_loadings_main(args: dict) -> None:
 
     try:
         loadings = Component_loading(
-            args["group_white"], args["group_grey"], args["dim"]
+            args["group_white"], args["group_grey"], args["dim"], args["threshold"]
         )
         component_loadings = loadings.run(args["dr_output"])
     except Exception as e:
