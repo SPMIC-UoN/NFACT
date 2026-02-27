@@ -1,5 +1,13 @@
 # ChangeLog
 
+## 27/12/2026
+
+### Bug fixes
+- None
+
+### New Features
+- nfact_stats loadings now thresholds components
+
 ## 20/12/2026
 
 ### Bug fixes
@@ -11,6 +19,7 @@
 - nfact_decomp now has option to use previously ran matrix (do not need to move matrix to a nfact_decomp folder)
 - Thresholding for nfact_dr and decomp now turned off by default
 - Updated documentation  
+
 ## 19/12/2025
 
 ### Bug fixes

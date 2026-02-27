@@ -42,6 +42,8 @@ Decomp args:
     Which decomposition algorithm. Options are: NMF (default), or ICA. This is case insensitive
 
 Stats args:
+  -t, --threshold 
+    Threshold components so that component loadings reflect connectivity patterns not noise.
   -C, --no_csv 
     Save Component Loadings as a npy file rather than as a csv file
 
