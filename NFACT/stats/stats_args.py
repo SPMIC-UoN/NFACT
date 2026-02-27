@@ -133,6 +133,17 @@ def comp_loading_args(args: object) -> None:
         f"{col['darker_pink']}Stats options{col['reset']}"
     )
     stats_args.add_argument(
+        "-t",
+        "--threshold",
+        dest="threshold",
+        default=2,
+        help="""
+        Threshold components so that component
+        loadings reflect connectivity patterns
+        not noise. 
+        """,
+    )
+    stats_args.add_argument(
         "-C",
         "--no_csv",
         dest="no_csv",

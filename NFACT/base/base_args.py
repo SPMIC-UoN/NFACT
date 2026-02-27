@@ -1,4 +1,3 @@
-from NFACT.base.utils import colours
 
 
 def cluster_args(base_args: object, col: dict) -> None:
@@ -242,7 +241,7 @@ def nfact_decomp_folder(args) -> None:
     -------
     None
     """
-    col = colours()
+
     args.add_argument(
         "-d",
         "--dim",
@@ -256,7 +255,7 @@ def nfact_decomp_folder(args) -> None:
         "-n",
         "--nfact_folder",
         dest="nfact_folder",
-        help=f"""{col["red"]}REQUIRED:{col["reset"]}
+        help="""
         Absolute path to nfact_decomp output folder.
         """,
     )
