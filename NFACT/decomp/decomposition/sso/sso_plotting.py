@@ -33,6 +33,8 @@ class NMFgraph:
         internal_average: np.ndarray,
         centroid_indices: np.ndarray,
         output_dir: str,
+        col: str = "magma",
+        ring_col: tuple = (0.0, 0.8, 0.0),
         point_size: int = 30,
         hull_lw: float = 1.5,
         label_fontsize: int = 10,
@@ -55,6 +57,13 @@ class NMFgraph:
         output_dir: str
             output directory to save
             graph to.
+        col: str
+            Which plt cmap to use.
+            Default is magma,
+        ring_col: tuple
+            What ring colour to use
+            default is green
+            (0.0, 0.8, 0.0),
         point_size: int
             How big single estimates
             should be. Default is 30.
@@ -87,12 +96,13 @@ class NMFgraph:
         self.centroids = self.proj[self.centroid_indices]
         self.dist_mat = distance_matrix(self.centroids, self.centroids)
 
-        self.cmap = plt.get_cmap("magma")  # or "inferno", "plasma", "magma"
+        self.cmap = plt.get_cmap(col)  # or "inferno", "plasma", "magma"
         self.norm = mcolors.Normalize(
             vmin=np.min(self.internal_average), vmax=np.max(self.internal_average)
         )
         self.min_reliable_size = 5
         self.any_unreliable_clusters = False
+        self.ring_col = ring_col
 
     # ------------------ SETUP ------------------
 
@@ -741,7 +751,7 @@ class NMFgraph:
         ring = Circle(
             centroid_pos,
             radius=self.uniform_radius,
-            edgecolor=[1, 0.6, 0],
+            edgecolor=self.ring_col,
             facecolor="none",
             linewidth=2,
             zorder=5,
@@ -837,7 +847,7 @@ class NMFgraph:
         x_max, y_max = all_pts_arr.max(axis=0)
         x_range = x_max - x_min
         y_range = y_max - y_min
-        padding = 0.05
+        padding = 0.009
         self.ax.set_xlim(x_min - x_range * padding, x_max + x_range * padding)
         self.ax.set_ylim(y_min - y_range * padding, y_max + y_range * padding)
 
@@ -975,7 +985,7 @@ class NMFgraph:
                 color="none",
                 label="Centroid",
                 markerfacecolor="none",
-                markeredgecolor=[1, 0.6, 0],
+                markeredgecolor=self.ring_col,
                 markersize=10,
                 markeredgewidth=2,
             ),
@@ -1030,7 +1040,7 @@ class NMFgraph:
         None
         """
         self.ax.set_title(
-            "Estimated space as a 2D UMAP Projection",
+            "Estimated space as a 2D CCA Projection",
             color="white",
             fontsize=14,
             pad=20,
