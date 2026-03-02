@@ -1,31 +1,172 @@
-import numpy as np
-from scipy.cluster.hierarchy import linkage, fcluster
-from scipy.spatial.distance import squareform
 from NFACT.base.utils import error_and_exit
 from NFACT.base.imagehandling import save_white_matter, save_grey_matter_components
 from NFACT.base.filesystem import make_directory
+import numpy as np
+from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.spatial.distance import squareform, cdist
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import pairwise_distances as pdist
+from sklearn.decomposition import PCA
+from tqdm import tqdm
 import warnings
 
-
-# Functions to silence Tensorflow
-import os
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-os.environ["XLA_FLAGS"] = "--xla_gpu_cuda_data_dir="
-
-try:
-    import tensorflow as tf
-
-    # Force CPU-only execution
-    tf.get_logger().setLevel("ERROR")
-    tf.config.set_visible_devices([], "GPU")
-except Exception:
-    pass
-from umap.parametric_umap import ParametricUMAP
-
 warnings.simplefilter("ignore", UserWarning)
+
+
+class CCA:
+    def __init__(self, cca_data: np.ndarray, epochs: int = 100):
+        """
+        Intialization of Curvilinear Component Analysis
+
+        Parameters
+        -----------
+        cca_data: np.ndarray
+            array of data to project
+        epochs: int
+            Number of epochs to run
+            Default is 100
+
+        Returns
+        -------
+        None
+        """
+        self.cca_data = self._scale_data(cca_data)
+        self.epochs = epochs
+        self.estimate_num = len(self.cca_data)
+        self.distance_mat = pdist(self.cca_data)
+        self.lmbd0 = self._calculate_lamda()
+        self.lmbd_final = 0.01
+        self.projection = self._intial_projection()
+        self.alpha0 = self._calculate_alpha()
+        self.alpha_final = self.alpha0 / 100
+
+    def _potency_decay(
+        self, initial_value: float, final_value: float, epoch: int, num_epochs: int
+    ) -> float:
+        """
+        Potency decat function. Decreases alpha and lambda
+
+        Parameters
+        ----------
+        initial_value: float
+            initial value of parameter
+        final_value: float
+            tarhet end point value
+        epoch: int
+            which epoch are we on
+        num_epochs: int
+            total number of epochs
+
+        Returns
+        --------
+        float: float value
+            float of parameter
+        """
+        return initial_value * (final_value / initial_value) ** (
+            epoch / (num_epochs - 1)
+        )
+
+    def _scale_data(self, data_to_scale: np.ndarray) -> np.ndarray:
+        """
+        Method to scale data
+
+        Parameters
+        -----------
+        data_to_scale: np.ndarray
+            data to scale
+
+        Returns
+        -------
+        np.ndarray: array
+            array of scaled data
+        """
+        return StandardScaler().fit_transform(data_to_scale)
+
+    def _calculate_lamda(self) -> float:
+        """
+        Method to get an initial lamda
+        value based on 90% percentile of
+        the distance matrix
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        --------
+        float: float values
+            initial lamda value
+        """
+        triu_dists = self.distance_mat[np.triu_indices(self.estimate_num, 1)]
+        return np.percentile(triu_dists, 90)
+
+    def _intial_projection(self) -> np.ndarray:
+        """ """
+        return PCA(n_components=2).fit_transform(self.cca_data)
+
+    def _calculate_alpha(self) -> float:
+        """
+        Method to calculate an initial
+        alpha
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        --------
+        float: float value
+            float of initial
+            alpha
+        """
+        return np.std(self.projection) * 0.1
+
+    def run(self) -> np.ndarray:
+        """
+        Function to run CCA
+
+        Parameters
+        -----------
+        None
+
+        Returns
+        -------
+        projections: np.ndarray
+            projects from CCA
+        """
+
+        for epoch in tqdm(
+            range(self.epochs),
+            desc="Training Epochs",
+            colour="magenta",
+            unit=" Epoch",
+            position=0,
+            dynamic_ncols=True,
+        ):
+            alpha = self._potency_decay(
+                self.alpha0, self.alpha_final, epoch, self.epochs
+            )
+            lmbda = self._potency_decay(self.lmbd0, self.lmbd_final, epoch, self.epochs)
+
+            indices = np.random.permutation(self.estimate_num)
+            for index in indices:
+                projection = self.projection[index].reshape(1, -1)
+                distance_x_row = cdist(projection, self.projection).flatten()
+                distance_y_row = self.distance_mat[index]
+                mask = np.ones(self.estimate_num, dtype=bool)
+                mask[index] = False
+                distance_x = distance_x_row[mask]
+                distance_y = distance_y_row[mask]
+                other_x = self.projection[mask]
+                distance_x[distance_x == 0] = 1e-10
+                weighting = np.exp(-distance_x / lmbda)
+                ratio = np.clip((distance_y / distance_x) - 1, -2, 2)
+                gradient = weighting * ratio
+                denom = np.sum(weighting) if np.sum(weighting) > 0 else 1
+                delta = (alpha * gradient).reshape(-1, 1) * (projection - other_x)
+                self.projection[mask] -= delta / denom
+
+        return self.projection
 
 
 def projection(dis) -> np.ndarray:
@@ -43,8 +184,7 @@ def projection(dis) -> np.ndarray:
     np.ndarray: array
         array of projections
     """
-    embedder = ParametricUMAP(metric="precomputed")
-    return embedder.fit(dis, precomputed_distances=dis).embedding_
+    return CCA(dis).run()
 
 
 def rownorm(nmf_mat: np.ndarray):
