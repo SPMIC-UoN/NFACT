@@ -306,7 +306,7 @@ def nmf_sso_output_wrapper(
     try:
         col = colours()
         plotting_output = os.path.join(output_dir, "nfact_decomp", "sso_output")
-        nprint(f"{col['light_pink']}Obtaining Projections{col['reset']}")
+        nprint(f"{col['light_pink']}Obtaining Projections{col['reset']}\n")
         coords = projection(dis)
         clust_score = cluster_scores(sim, partitions)
         NMFgraph(
@@ -393,10 +393,10 @@ def nmf_sso(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
     parameters["n_components"] = centroids.shape[0]
     w_mat = np.ascontiguousarray(g_components[:, centroids])
     h_mat = np.ascontiguousarray(w_components[centroids, :])
-    print(f"{col['light_pink']}Initiating final NMF{col['reset']}\n")
+    print(f"{col['light_pink']}Initiating final NMF{col['reset']}")
     final_nmf = nmf_decomp(parameters, fdt_matrix, W_mat=w_mat, H_mat=h_mat)
 
-    print(f"{col['light_pink']}Calculating Variance Explained{col['reset']}\n")
+    print(f"{col['light_pink']}Calculating Variance Explained{col['reset']}")
     variance = cumulative_variance(
         fdt_matrix, final_nmf["grey_components"], final_nmf["white_components"]
     )

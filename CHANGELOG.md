@@ -1,6 +1,15 @@
 # ChangeLog
 
-## 27/12/2026
+## 02/03/2026
+
+### Bug fixes
+- None
+
+### New Features
+- nfact_decomp now uses CCA for projections
+- Removed UMAP as dependency 
+
+## 27/02/2026
 
 ### Bug fixes
 - None
@@ -8,7 +17,7 @@
 ### New Features
 - nfact_stats loadings now thresholds components
 
-## 20/12/2026
+## 20/02/2026
 
 ### Bug fixes
 - None
