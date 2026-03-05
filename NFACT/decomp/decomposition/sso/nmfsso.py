@@ -361,9 +361,12 @@ def nmf_sso(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
         dictionary of grey and white matter
         components
     """
-    if args["no_sso"]:
-        return nmf_decomp(parameters, fdt_matrix)
     col = colours()
+    nmf_string = f"{col['pink']}NMF Mode:{col['reset']} "
+    if args["no_sso"]:
+        print(nmf_string + "Single Run")
+        return nmf_decomp(parameters, fdt_matrix)
+    print(nmf_string + "SSO")
     nmfsso_est = NMFsso(fdt_matrix, args["iterations"], parameters, args["n_cores"])
     results_of_comp = nmfsso_est.run()
     w_components = np.vstack(results_of_comp["white"])
