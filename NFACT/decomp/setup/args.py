@@ -96,6 +96,7 @@ def nfact_decomp_args() -> dict:
         "--exclude_sso",
         dest="no_sso",
         default=False,
+        action="store_true",
         help="""
         Don't do NMF-sso. 
         Just do a single NMF. Default is False
