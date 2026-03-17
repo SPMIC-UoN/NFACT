@@ -92,6 +92,24 @@ def nfact_decomp_args() -> dict:
         """,
     )
     decomp_args.add_argument(
+        "-w",
+        "--wm_matrix",
+        dest="wm_matrix",
+        default=False,
+        help="""
+        Previous wm matrix to initiate NMF with
+        """,
+    )
+    decomp_args.add_argument(
+        "-g",
+        "--gm_matrix",
+        dest="gm_matrix",
+        default=False,
+        help="""
+        Previous gm matrix to initiate NMF with
+        """,
+    )
+    decomp_args.add_argument(
         "-X",
         "--exclude_sso",
         dest="no_sso",
