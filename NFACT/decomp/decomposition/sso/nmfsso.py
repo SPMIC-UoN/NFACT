@@ -7,6 +7,8 @@ from NFACT.decomp.decomposition.sso.sso_functions import (
     cluster_scores,
     cumulative_variance,
     save_individual_components,
+    save_initialisation,
+    load_initialisation,
 )
 from NFACT.decomp.decomposition.sso.sso_plotting import (
     plot_matrix,
@@ -247,7 +249,6 @@ class NMFsso:
             nmf_sso_results = self._parallel_run()
         else:
             nmf_sso_results = self._single_run()
-
         return nmf_sso_results
 
 
@@ -341,34 +342,10 @@ def nmf_sso_output_wrapper(
         nprint(f"Unable to save graphs due to: {e}")
 
 
-def nmf_sso(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
-    """
-    Function to run nmf, either sso run
-    or singular run.
-
-    Parameters
-    ----------
-    fdt_matrix: np.ndarray
-        fdt_matrix to decompose
-    parameters: dict
-        NMF parameters
-    args: dict
-        cmd arguments
-
-    Returns
-    -------
-    dict: dictionary
-        dictionary of grey and white matter
-        components
-    """
-    col = colours()
-    nmf_string = f"{col['pink']}NMF Mode:{col['reset']} "
-    if args["no_sso"]:
-        print(nmf_string + "Single Run")
-        return nmf_decomp(parameters, fdt_matrix)
-    print(nmf_string + "SSO")
-    nmfsso_est = NMFsso(fdt_matrix, args["iterations"], parameters, args["n_cores"])
-    results_of_comp = nmfsso_est.run()
+def sso_run(fdt_matrix: np.ndarray, parameters: dict, args: dict, col: dict):
+    results_of_comp = NMFsso(
+        fdt_matrix, args["iterations"], parameters, args["n_cores"]
+    ).run()
     w_components = np.vstack(results_of_comp["white"])
     g_components = np.hstack(results_of_comp["grey"])
     sim = compute_similairty_matrix(w_components)
@@ -396,12 +373,55 @@ def nmf_sso(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
     parameters["n_components"] = centroids.shape[0]
     w_mat = np.ascontiguousarray(g_components[:, centroids])
     h_mat = np.ascontiguousarray(w_components[centroids, :])
+    if args["initialisation_matrices"]:
+        print(f"{col['light_pink']}Saving Initialisation{col['reset']}")
+        save_initialisation(w_mat, h_mat, args["output"])
     print(f"{col['light_pink']}Initiating final NMF{col['reset']}")
     final_nmf = nmf_decomp(parameters, fdt_matrix, W_mat=w_mat, H_mat=h_mat)
-
     print(f"{col['light_pink']}Calculating Variance Explained{col['reset']}")
     variance = cumulative_variance(
         fdt_matrix, final_nmf["grey_components"], final_nmf["white_components"]
     )
     nmf_sso_output_wrapper(args["outdir"], sim, dis, partitions, centroids, variance)
     return final_nmf
+
+
+def nmf_run(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
+    """
+    Function to run nmf, either sso run
+    or singular run.
+
+    Parameters
+    ----------
+    fdt_matrix: np.ndarray
+        fdt_matrix to decompose
+    parameters: dict
+        NMF parameters
+    args: dict
+        cmd arguments
+
+    Returns
+    -------
+    dict: dictionary
+        dictionary of grey and white matter
+        components
+    """
+    col = colours()
+    nmf_string = f"{col['pink']}NMF Mode:{col['reset']} "
+    if args["wm_matrix"] or args["gm_matrix"]:
+        intialisation_mat = load_initialisation(args["gm_matrix"], args["wm_matrix"])
+
+        if intialisation_mat:
+            print(nmf_string + "Initialisation Run")
+            return nmf_decomp(
+                parameters,
+                fdt_matrix,
+                W_mat=np.ascontiguousarray(intialisation_mat["gm_mat"]),
+                H_mat=np.ascontiguousarray(intialisation_mat["wm_mat"]),
+            )
+    if args["no_sso"]:
+        print(nmf_string + "Single Run")
+        return nmf_decomp(parameters, fdt_matrix)
+
+    print(nmf_string + "SSO")
+    return sso_run(fdt_matrix, parameters, args, col)
