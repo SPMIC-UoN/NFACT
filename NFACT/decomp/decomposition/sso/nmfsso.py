@@ -413,6 +413,7 @@ def nmf_run(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
 
         if intialisation_mat:
             print(nmf_string + "Initialisation Run")
+            parameters["n_components"] = intialisation_mat["wm_mat"].shape[0]
             return nmf_decomp(
                 parameters,
                 fdt_matrix,
