@@ -97,7 +97,9 @@ def nfact_decomp_args() -> dict:
         dest="wm_matrix",
         default=False,
         help="""
-        Previous wm matrix to initiate NMF with
+        Previous wm matrix to initiate NMF with. Default is 
+        false (see sckit learn NMF for further details on initialisation).
+        If this option is given then --gm_matrix needed.
         """,
     )
     decomp_args.add_argument(
@@ -106,7 +108,9 @@ def nfact_decomp_args() -> dict:
         dest="gm_matrix",
         default=False,
         help="""
-        Previous gm matrix to initiate NMF with
+        Previous gm matrix to initiate NMF with. Default is 
+        false (see sckit learn NMF for further details on initialisation).
+        If this option is given then --wm_matrix needed. 
         """,
     )
     decomp_args.add_argument(
