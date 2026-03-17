@@ -200,6 +200,16 @@ def nfact_decomp_args() -> dict:
         as 4D files with each 4D point as a single NMF run
         """,
     )
+    output_args.add_argument(
+        "-I",
+        "--initialisation_matrices",
+        dest="initialisation_matrices",
+        action="store_true",
+        default=False,
+        help="""
+        Option to save initialisation matrices
+        """,
+    )
     ica_options = base_args.add_argument_group(
         f"{col['purple']}ICA options{col['reset']}"
     )
