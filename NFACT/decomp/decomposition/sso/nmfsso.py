@@ -375,7 +375,7 @@ def sso_run(fdt_matrix: np.ndarray, parameters: dict, args: dict, col: dict):
     h_mat = np.ascontiguousarray(w_components[centroids, :])
     if args["initialisation_matrices"]:
         print(f"{col['light_pink']}Saving Initialisation{col['reset']}")
-        save_initialisation(w_mat, h_mat, args["output"])
+        save_initialisation(w_mat, h_mat, args["outdir"])
     print(f"{col['light_pink']}Initiating final NMF{col['reset']}")
     final_nmf = nmf_decomp(parameters, fdt_matrix, W_mat=w_mat, H_mat=h_mat)
     print(f"{col['light_pink']}Calculating Variance Explained{col['reset']}")
