@@ -92,6 +92,28 @@ def nfact_decomp_args() -> dict:
         """,
     )
     decomp_args.add_argument(
+        "-w",
+        "--wm_matrix",
+        dest="wm_matrix",
+        default=False,
+        help="""
+        Previous wm matrix to initiate NMF with. Default is 
+        false (see sckit learn NMF for further details on initialisation).
+        If this option is given then --gm_matrix needed.
+        """,
+    )
+    decomp_args.add_argument(
+        "-g",
+        "--gm_matrix",
+        dest="gm_matrix",
+        default=False,
+        help="""
+        Previous gm matrix to initiate NMF with. Default is 
+        false (see sckit learn NMF for further details on initialisation).
+        If this option is given then --wm_matrix needed. 
+        """,
+    )
+    decomp_args.add_argument(
         "-X",
         "--exclude_sso",
         dest="no_sso",
@@ -176,6 +198,16 @@ def nfact_decomp_args() -> dict:
         help="""
         When doing sso save each cluster as nifti/gifti/cifti
         as 4D files with each 4D point as a single NMF run
+        """,
+    )
+    output_args.add_argument(
+        "-I",
+        "--initialisation_matrices",
+        dest="initialisation_matrices",
+        action="store_true",
+        default=False,
+        help="""
+        Option to save initialisation matrices
         """,
     )
     ica_options = base_args.add_argument_group(

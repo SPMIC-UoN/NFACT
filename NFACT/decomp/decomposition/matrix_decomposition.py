@@ -4,7 +4,7 @@ from NFACT.decomp.decomposition.matrix_handling import (
 from NFACT.base.utils import error_and_exit, nprint, Timer
 from NFACT.base.matrix_handling import normalise_components
 from NFACT.config.nfact_config_functions import create_combined_algo_dict
-from NFACT.decomp.decomposition.sso.nmfsso import nmf_sso
+from NFACT.decomp.decomposition.sso.nmfsso import nmf_run
 from sklearn.decomposition import FastICA, PCA
 import numpy as np
 from sklearn.utils._testing import ignore_warnings
@@ -229,7 +229,7 @@ def matrix_decomposition(
         )
 
     if args["algo"] == "nmf":
-        components = nmf_sso(fdt_matrix, parameters, args)
+        components = nmf_run(fdt_matrix, parameters, args)
 
     if args["normalise"]:
         normalised = normalise_components(

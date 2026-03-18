@@ -1,4 +1,4 @@
-from NFACT.base.utils import error_and_exit
+from NFACT.base.utils import error_and_exit, colours
 from NFACT.base.imagehandling import save_white_matter, save_grey_matter_components
 from NFACT.base.filesystem import make_directory
 import numpy as np
@@ -9,6 +9,7 @@ from sklearn.metrics import pairwise_distances as pdist
 from sklearn.decomposition import PCA
 from tqdm import tqdm
 import warnings
+import os
 
 warnings.simplefilter("ignore", UserWarning)
 
@@ -780,3 +781,56 @@ def save_individual_components(
             roi=roi,
             seeds=seed,
         )
+
+
+def save_initialisation(gm_mat: np.ndarray, wm_mat: np.ndarray, path: str) -> None:
+    """
+    Funciton to save matrices for initialisation
+
+    Parameters
+    ----------
+    gm_mat: np.ndarray
+        gm matrix to save
+    wm_mat: np.ndarray
+        wm matrix to save
+    path: str
+        path to output dirname
+
+    Returns
+    -------
+    None
+    """
+
+    sso_dir = os.path.join(path, "nfact_decomp", "sso_output")
+    np.save(os.path.join(sso_dir, "gm_mat.npy"), gm_mat)
+    np.save(os.path.join(sso_dir, "wm_mat.npy"), wm_mat)
+
+
+def load_initialisation(gm_mat: str, wm_mat: str) -> dict[np.ndarray]:
+    """
+    Function to load initialisation matricies.
+
+    Parameters
+    ----------
+    gm_mat: str
+        path to gm matrix
+    wm_mat: str
+        path to wm matrix
+
+    Returns
+    --------
+    dict: dictionary object
+        dictionary object of preloaded
+        arrays of gm & wm
+    """
+    try:
+        gm_mat = np.load(gm_mat, allow_pickle=True)
+        wm_mat = np.load(wm_mat, allow_pickle=True)
+        return {"gm_mat": gm_mat, "wm_mat": wm_mat}
+    except Exception as e:
+        col = colours()
+        print(
+            f"{col['red']}Unable to load initialisation matrcies due to {e}{col['reset']}"
+        )
+        print(f"{col['red']}Doing SSO{col['reset']}")
+        return None

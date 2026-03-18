@@ -89,6 +89,10 @@ Decomposition options:
     Number of iterations of NMF for the NMF-sso. Default is 20
   -n, --n_cores 
     To parallelize NMF-sso and with how many cores. Default is not to.
+  -w  --wm_matrix 
+    Previous wm matrix to initiate NMF with. Default is false (see sckit learn NMF for further details on initialisation). If this option is given then --gm_matrix needed.
+  -g, --gm_matrix 
+    Previous gm matrix to initiate NMF with. Default is false (see sckit learn NMF for further details on initialisation). If this option is given then --wm_matrix needed.
   -X, --exclude_sso 
     Don't do NMF-sso. Just do a single NMF. Default is False
 
@@ -107,6 +111,9 @@ Output options:
     Value at which to threshold Components at. Default is to not do thresholding.
   -CS, --cluster_save 
     When doing sso save each cluster as nifti/gifti/cifti as 4D files with each 4D point as a single NMF run
+  -I, --initialisation_matrices 
+    Option to save initialisation matrices
+
 
 ICA options:
   -c, --components 

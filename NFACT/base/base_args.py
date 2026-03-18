@@ -1,5 +1,3 @@
-
-
 def cluster_args(base_args: object, col: dict) -> None:
     """
     Function to add in cluster arguments to
@@ -173,8 +171,8 @@ def seed_roi_args(args: object) -> None:
     None
     """
     args.add_argument(
-        "--seeds",
         "-s",
+        "--seeds",
         dest="seeds",
         help="""
         Absolute path to a text file of seed(s) 
@@ -184,8 +182,8 @@ def seed_roi_args(args: object) -> None:
         """,
     )
     args.add_argument(
-        "--roi",
         "-r",
+        "--roi",
         dest="roi",
         default=False,
         help="""
