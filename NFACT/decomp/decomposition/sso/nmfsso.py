@@ -65,7 +65,7 @@ def nmf_decomp(
     if W_mat is not None and H_mat is not None:
         parameters = parameters.copy()
         parameters["init"] = "custom"
-
+ 
     decomp = NMF(**parameters)
     try:
         grey_matter = decomp.fit_transform(fdt_matrix, W=W_mat, H=H_mat)
@@ -408,6 +408,8 @@ def nmf_run(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
     """
     col = colours()
     nmf_string = f"{col['pink']}NMF Mode:{col['reset']} "
+    if args['no_sso'] and (args["gm_matrix"] or args["wm_matrix"]):
+        error_and_exit(False, "Unlcear which type of run to perform. Either use --no-sso or give initialisation matricies not both")
     if args["wm_matrix"] or args["gm_matrix"]:
         intialisation_mat = load_initialisation(args["gm_matrix"], args["wm_matrix"])
 
