@@ -137,6 +137,7 @@ def comp_loading_args(args: object) -> None:
         "--threshold",
         dest="threshold",
         default=2,
+        type=int,
         help="""
         Threshold components so that component
         loadings reflect connectivity patterns
