@@ -1,5 +1,6 @@
 from NFACT.base.imagehandling import get_cifti_data, save_volume
 from NFACT.base.utils import colours
+from NFACT.base.matrix_handling import thresholding
 import nibabel as nib
 from glob import glob
 import numpy as np
@@ -48,8 +49,9 @@ def get_subjects(path: str, img_type: str) -> list:
     return glob(os.path.join(path, f"{img_type}_*"))
 
 
+
 def merge_components(
-    data_to_merge: np.ndarray, comp: int, vol: bool = True
+    data_to_merge: np.ndarray, comp: int, threshold: float, vol: bool = True
 ) -> np.ndarray:
     """
     Function to merge components
@@ -60,16 +62,22 @@ def merge_components(
         components to merge
     comp: int
         component to merge
+    threshold: float
+        threshold to apply to components before merging
     vol: bool = True
         is data volume data
     """
 
     if vol:
+        data = data_to_merge[:, :, :, comp]
+        data = thresholding(data, threshold)
         return np.sum(data_to_merge[:, :, :, comp], axis=3)
-    return np.sum(data_to_merge[:, comp], axis=1)
+    data = data_to_merge[:, comp]
+    data = thresholding(data, threshold)          
+    return np.sum(data, axis=1)
 
 
-def create_vol_map(vol_path: str, comp: int) -> np.ndarray:
+def create_vol_map(vol_path: str, comp: int, threshold: float) -> np.ndarray:
     """
     Function to create a volume
     stat map
@@ -80,13 +88,18 @@ def create_vol_map(vol_path: str, comp: int) -> np.ndarray:
         path to volume image
     comp: int
         component to merge on
-
+    threshold: float
+        threshold to apply to components before merging
+    Returns
+    -------
+    np.ndarray: array
+        array of merged components  
     """
     vol_data = nib.load(vol_path).get_fdata()
-    return merge_components(vol_data, comp)
+    return merge_components(vol_data, comp, threshold)
 
 
-def merge_volumes(subjects: list, comp: list) -> np.ndarray:
+def merge_volumes(subjects: list, comp: list, threshold: float) -> np.ndarray:
     """
     Function to merge subjects volumes
     given component number(s)
@@ -97,17 +110,19 @@ def merge_volumes(subjects: list, comp: list) -> np.ndarray:
         list of subjects
     comp: list
         list of components
+    threshold: float
+        threshold to apply to components before merging
 
     Returns
     -------
     np.ndarray: array
         array of merged volumes
     """
-    subject_maps = [create_vol_map(subj, comp) for subj in subjects]
+    subject_maps = [create_vol_map(subj, comp, threshold) for subj in subjects]
     return np.stack(subject_maps, axis=3)
 
 
-def get_group_maps(group_w: str, group_g: str, comp: int) -> np.ndarray:
+def get_group_maps(group_w: str, group_g: str, comp: int, threshold: float  ) -> np.ndarray:
     """
     Function to get group maps
 
@@ -121,14 +136,15 @@ def get_group_maps(group_w: str, group_g: str, comp: int) -> np.ndarray:
         (currently on ciftis supported)
     comp: int
         components to merge on
-
+    threshold: float
+        threshold to apply to components before merging
     Returns
     -------
     cifti_data: np.ndarray
         cifti_data
     """
     group = nib.load(group_w).get_fdata()
-    group_comp = merge_components(group, comp)
+    group_comp = merge_components(group, comp, threshold)
     cifit_data = process_cifti(group_g, comp)
     cifit_data["wm"] = group_comp
     return cifit_data
@@ -265,7 +281,7 @@ def save_gm_surf(darrays: list, file_name: str) -> None:
     nib.GiftiImage(darrays=darrays).to_filename(f"{file_name}.func.gii")
 
 
-def process_cifti(cifti_path: str, comp: int) -> dict:
+def process_cifti(cifti_path: str, comp: int, threshold: float) -> dict:
     """
     Function to process cifti by merging components
 
@@ -275,6 +291,8 @@ def process_cifti(cifti_path: str, comp: int) -> dict:
         cifti path to load
     comp: int
         components to merge on
+    threshold: float
+        threshold to apply to components before merging
 
     Returns
     --------
@@ -283,9 +301,9 @@ def process_cifti(cifti_path: str, comp: int) -> dict:
         arrays
     """
     cifit_data = get_cifti_data(cifti_path)
-    l_surf = merge_components(cifit_data["L_surf"], comp, vol=False)
-    r_surf = merge_components(cifit_data["R_surf"], comp, vol=False)
-    vol_comp = merge_components(cifit_data["vol"].get_fdata(), comp)
+    l_surf = merge_components(cifit_data["L_surf"], comp, threshold=threshold, vol=False)
+    r_surf = merge_components(cifit_data["R_surf"], comp, threshold=threshold, vol=False)
+    vol_comp = merge_components(cifit_data["vol"].get_fdata(), comp, threshold=threshold, vol=True)
     return {"l_surf": l_surf, "r_surf": r_surf, "vol": vol_comp}
 
 
@@ -311,7 +329,7 @@ def create_darray(gii_data: np.ndarray) -> list:
     ]
 
 
-def create_gm_maps(subjects: list, comp: list) -> dict:
+def create_gm_maps(subjects: list, comp: list, threshold: float) -> dict:
     """
     Function to create grey matter maps
 
@@ -320,7 +338,9 @@ def create_gm_maps(subjects: list, comp: list) -> dict:
     subjects: list
         list of subjects
     comp: list
-        component
+        components to merge on
+    threshold: float
+        threshold to apply to components before merging
 
     Returns
     -------
@@ -328,7 +348,7 @@ def create_gm_maps(subjects: list, comp: list) -> dict:
         dict of left, right and vol
         data of np.ndarrays
     """
-    results = [process_cifti(sub, comp) for sub in subjects]
+    results = [process_cifti(sub, comp, threshold) for sub in subjects]
     return {
         "l_surf": np.stack([dat["l_surf"] for dat in results], axis=1),
         "r_surf": np.stack([dat["r_surf"] for dat in results], axis=1),
@@ -480,11 +500,12 @@ def statsmap_main(args: dict) -> None:
 
     if not group_mode:
         subjects_w = sort_paths_by_subject_order(subjects_w, args["dr_output"])
-    subject_W_maps = merge_volumes(subjects_w, args["components"])
+    subject_W_maps = merge_volumes(subjects_w, args["components"], args["threshold"])
     save_volume_wrapper(
         subjects_w[0],
         subject_W_maps,
         os.path.join(args["stats_dir"], f"W_{args['map_name']}.nii.gz"),
+        
     )
 
     print(f"\n{col['plum']}Working on Grey matter files{col['reset']}")
@@ -494,15 +515,20 @@ def statsmap_main(args: dict) -> None:
     if not group_mode:
         subjects_g = sort_paths_by_subject_order(subjects_g, args["dr_output"])
 
-    gm_data = create_gm_maps(subjects_g, args["components"])
+    gm_data = create_gm_maps(subjects_g, args["components"], args["threshold"])
     save_cifit_component(
         subjects_g, args["stats_dir"], gm_data, f"G_{args['map_name']}"
     )
 
-    if group_mode:
+    if group_mode or args["skip"]:
         return
+    
     print(f"\n{col['plum']}Calculating variance maps{col['reset']}")
-
+    if args['dim'] is None:
+        print(
+            f"{col['red']}Unable to calculate variance maps. Dim argument is likely required{col['reset']}"
+        )
+        return
     group_maps = get_group_maps(
         args["group_white"],
         args["group_grey"][0],
