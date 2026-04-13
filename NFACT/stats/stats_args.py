@@ -198,7 +198,7 @@ def stat_map_args(args) -> dict:
         type=int,
         nargs="+",
         help="""
-        Components to merge
+        Components to merge. Provide as space separated list of integers. E.g. -c 1 2 3
         """,
     )
     map_args.add_argument(
@@ -211,6 +211,18 @@ def stat_map_args(args) -> dict:
         """,
     )
     map_args.add_argument(
+        "-t",
+        "--threshold",
+        dest="threshold",
+        default=2,
+        type=int,
+        help="""
+        Threshold components so that component
+        loadings reflect connectivity patterns
+        not noise.
+        """,
+    )
+    map_args.add_argument(
         "-G",
         "--group-only",
         dest="group-only",
@@ -219,7 +231,16 @@ def stat_map_args(args) -> dict:
         Only do group level stats map. Doesn't need a subject list
         """,
     )
-
+    map_args.add_argument(
+        "-S",
+        "--skip",
+        dest="skip",
+        default=False,
+        action="store_true",
+        help="""
+        Skip creating variance maps and only creates a statsmap.
+        """,
+    )
 
 def nfact_stats_splash() -> str:
     """
