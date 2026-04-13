@@ -1,6 +1,7 @@
 from NFACT.base.imagehandling import get_cifti_data, save_volume
 from NFACT.base.utils import colours
 from NFACT.base.matrix_handling import thresholding
+from NFACT.base.filesystem import read_file_to_list
 import nibabel as nib
 from glob import glob
 import numpy as np
@@ -28,7 +29,7 @@ def subject_variability_map(group_comp: np.ndarray, sub_data: np.ndarray) -> np.
     return (sub_data - np.mean(group_comp)) / np.std(group_comp)
 
 
-def get_subjects(path: str, img_type: str) -> list:
+def get_subjects(path: str, img_type: str, group_mode: bool) -> list:
     """
     Function to get subjects data
     of a given imaging type
@@ -39,6 +40,10 @@ def get_subjects(path: str, img_type: str) -> list:
         path of str
     img_type: str
         img type of
+    group_mode: bool
+        if True then will return list of subjects
+        if False then will return list of subjects
+        in the order of the subject list file
 
     Returns
     -------
@@ -46,7 +51,10 @@ def get_subjects(path: str, img_type: str) -> list:
         list of subjects
         by a given imaging type
     """
-    return glob(os.path.join(path, f"{img_type}_*"))
+    if group_mode:
+        return glob(os.path.join(path, f"{img_type}_*"))
+    subjects = read_file_to_list(path)
+    return [glob(os.path.join(os.path.dirname(sub), f"{img_type}_{os.path.basename(sub)}*"))[0] for sub in subjects]
 
 
 
@@ -489,17 +497,14 @@ def statsmap_main(args: dict) -> None:
             args["nfact_decomp_dir"], "components", args["algo"], "decomp"
         )
     else:
-        folder_path = os.path.dirname(args["dr_output"][0])
+        folder_path = args["list_of_subjects"]
 
     if args["map_name"] == "":
         args["map_name"] = "stat_map"
 
     print(f"\n{col['plum']}Working on White matter{col['reset']}")
     print("-" * 100)
-    subjects_w = get_subjects(folder_path, "W")
-
-    if not group_mode:
-        subjects_w = sort_paths_by_subject_order(subjects_w, args["dr_output"])
+    subjects_w = get_subjects(folder_path, "W", group_mode)
     subject_W_maps = merge_volumes(subjects_w, args["components"], args["threshold"])
     save_volume_wrapper(
         subjects_w[0],
@@ -510,10 +515,7 @@ def statsmap_main(args: dict) -> None:
 
     print(f"\n{col['plum']}Working on Grey matter files{col['reset']}")
     print("-" * 100)
-    subjects_g = get_subjects(folder_path, "G")
-
-    if not group_mode:
-        subjects_g = sort_paths_by_subject_order(subjects_g, args["dr_output"])
+    subjects_g = get_subjects(folder_path, "G", group_mode)
 
     gm_data = create_gm_maps(subjects_g, args["components"], args["threshold"])
     save_cifit_component(
