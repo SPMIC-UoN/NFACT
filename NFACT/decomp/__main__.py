@@ -36,6 +36,7 @@ from NFACT.decomp.pipes.image_handling import (
 )
 from NFACT.base.matrix_handling import thresholding_components
 from NFACT.decomp.setup.arg_check import process_command_args
+from NFACT.decomp.decomposition.nmf_runs import find_free_gpu_uuid
 import os
 
 
@@ -55,7 +56,11 @@ def nfact_decomp_main(args: dict = None) -> None:
     None
     """
     # Setting up nfact
-
+    # Auto-assign a free GPU before importing PyTorch!
+    if "CUDA_VISIBLE_DEVICES" not in os.environ:
+        free_gpu = find_free_gpu_uuid()
+        if free_gpu:
+            os.environ["CUDA_VISIBLE_DEVICES"] = free_gpu
     Signit_handler()
     to_exit = False
     if not args:
