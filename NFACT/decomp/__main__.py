@@ -57,10 +57,14 @@ def nfact_decomp_main(args: dict = None) -> None:
     """
     # Setting up nfact
     # Auto-assign a free GPU before importing PyTorch!
-    if "CUDA_VISIBLE_DEVICES" not in os.environ:
-        free_gpu = find_free_gpu_uuid()
-        if free_gpu:
-            os.environ["CUDA_VISIBLE_DEVICES"] = free_gpu
+    if args["gpu"] is not None:
+        if "CUDA_VISIBLE_DEVICES" not in os.environ:
+            free_gpu = find_free_gpu_uuid()
+            if free_gpu:
+                os.environ["CUDA_VISIBLE_DEVICES"] = free_gpu
+        else:
+            print(f"{col['red']}No free GPU found, using CPU {col['reset']}")
+            args["gpu"] = None
     Signit_handler()
     to_exit = False
     if not args:
