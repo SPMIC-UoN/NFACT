@@ -151,6 +151,23 @@ def nmf_decomp(
     return {"grey_components": grey_matter, "white_components": decomp.components_}
 
 
+def which_nmf(gpu: bool) -> object:
+    """
+    Function to return the correct nmf function based on gpu
+
+    Parameters
+    ----------
+    gpu: bool
+        whether to use gpu
+
+    Returns
+    -------
+    object: nmf function
+        which nmf function to use
+    """
+    return nmf_gpu_run if gpu else nmf_decomp
+
+
 def nmf_run(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
     """
     Function to run nmf, either sso run
@@ -172,7 +189,7 @@ def nmf_run(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
         components
     """
     col = colours()
-    nmf = nmf_gpu_run if args["gpu"] else nmf_decomp
+    nmf = which_nmf(args["gpu"])
     nmf_string = f"{col['pink']}NMF Mode:{col['reset']} "
     if args["no_sso"] and (args["gm_matrix"] or args["wm_matrix"]):
         error_and_exit(

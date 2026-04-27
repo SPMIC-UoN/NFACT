@@ -57,21 +57,23 @@ def nfact_decomp_main(args: dict = None) -> None:
     """
     # Setting up nfact
     # Auto-assign a free GPU before importing PyTorch!
-    if args["gpu"] is not None:
-        if "CUDA_VISIBLE_DEVICES" not in os.environ:
-            free_gpu = find_free_gpu_uuid()
-            if free_gpu:
-                os.environ["CUDA_VISIBLE_DEVICES"] = free_gpu
-        else:
-            print(f"{col['red']}No free GPU found, using CPU {col['reset']}")
-            args["gpu"] = None
+    os.environ["PYTHONWARNINGS"] = "ignore"
     Signit_handler()
     to_exit = False
     if not args:
         args = nfact_decomp_args()
         to_exit = True
     col = colours()
-    os.environ["PYTHONWARNINGS"] = "ignore"
+    if args["gpu"] is not None:
+        if "CUDA_VISIBLE_DEVICES" not in os.environ:
+            free_gpu = find_free_gpu_uuid()
+            if free_gpu:
+                os.environ["CUDA_VISIBLE_DEVICES"] = free_gpu
+                print(f"{col['plum']}Using GPU{col['reset']}")
+            else:
+                print(f"{col['red']}No free GPU found, using CPU {col['reset']}")
+                args["gpu"] = None
+
     if args["cifti"]:
         print(
             f"{col['plum']}Cifti option given:{col['reset']} Seeds must be in correct order"
