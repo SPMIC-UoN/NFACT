@@ -16,7 +16,7 @@ from NFACT.decomp.decomposition.sso.sso_plotting import (
 )
 from NFACT.base.utils import nprint, colours
 from NFACT.base.matrix_handling import thresholding
-from NFACT.decomp.decomposition.nmf_runs import nmf_decomp
+from NFACT.decomp.decomposition.nmf_runs import which_nmf
 import numpy as np
 from multiprocessing import shared_memory
 from joblib import Parallel, delayed
@@ -52,6 +52,7 @@ class NMFsso:
         num_int: int,
         nmf_params: dict,
         n_jobs: int,
+        gpu: bool = False,
     ) -> None:
         self.num_int = num_int
         self.nmf_params = nmf_params.copy()
@@ -59,6 +60,7 @@ class NMFsso:
         self.fdt_mat = fdt_mat
         self.nmf_params["init"] = "random"
         self.col = colours()
+        self.nmf_decomp = which_nmf(gpu)
 
     def _results(self) -> dict:
         """
@@ -100,7 +102,7 @@ class NMFsso:
         shm = shared_memory.SharedMemory(name=shm_name)
         fdt_mat = np.ndarray(shape, dtype=dtype, buffer=shm.buf)
         nmf_params["random_state"] = None
-        nmf_state = nmf_decomp(nmf_params, fdt_mat)
+        nmf_state = self.nmf_decomp(nmf_params, fdt_mat)
         shm.close()
         nmf_state["white_components"] = thresholding(nmf_state["white_components"], 3)
         return nmf_state["grey_components"], nmf_state["white_components"]
@@ -177,7 +179,7 @@ class NMFsso:
                 f"{self.col['pink']}Run: {self.col['reset']}{iterat + 1}/{self.num_int}"
             )
             self.nmf_params["random_state"] = None
-            nmf_state = nmf_decomp(self.nmf_params, self.fdt_mat)
+            nmf_state = self.nmf_decomp(self.nmf_params, self.fdt_mat)
             nmf_sso_results["grey"].append(nmf_state["grey_components"])
             nmf_sso_results["white"].append(nmf_state["white_components"])
 
@@ -296,8 +298,27 @@ def nmf_sso_output_wrapper(
 
 
 def sso_run(fdt_matrix: np.ndarray, parameters: dict, args: dict, col: dict):
+    """
+    Function to run nmf-sso.
+
+    Parameters
+    ----------
+    fdt_matrix: np.ndarray
+        fdt_matrix to decompose
+    parameters: dict
+        dictionary of hyperparameters
+    args: dict
+        dictionary of cmd arguments
+    col: dict
+        dictionary of colours
+
+    Returns
+    -------
+    dict:
+        dictionary of grey and white matter components
+    """
     results_of_comp = NMFsso(
-        fdt_matrix, args["iterations"], parameters, args["n_cores"]
+        fdt_matrix, args["iterations"], parameters, args["n_cores"], args["gpu"]
     ).run()
     w_components = np.vstack(results_of_comp["white"])
     g_components = np.hstack(results_of_comp["grey"])
@@ -330,6 +351,7 @@ def sso_run(fdt_matrix: np.ndarray, parameters: dict, args: dict, col: dict):
         print(f"{col['light_pink']}Saving Initialisation{col['reset']}")
         save_initialisation(w_mat, h_mat, args["outdir"])
     print(f"{col['light_pink']}Initiating final NMF{col['reset']}")
+    nmf_decomp = which_nmf(args["gpu"])
     final_nmf = nmf_decomp(parameters, fdt_matrix, W_mat=w_mat, H_mat=h_mat)
     print(f"{col['light_pink']}Calculating Variance Explained{col['reset']}")
     variance = cumulative_variance(
