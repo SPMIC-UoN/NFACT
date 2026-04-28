@@ -95,7 +95,6 @@ def nmf_gpu_run(
     device = torch.device("cuda")
     torch.set_default_dtype(tensor_dtype)
     col = colours()
-    print(f"{col['pink']}GPU searching{col['reset']}...")
     gpu_uuid = find_free_gpu_uuid()
     if gpu_uuid:
         print(f"{col['pink']}Using:{col['reset']} GPU")
@@ -105,23 +104,27 @@ def nmf_gpu_run(
         print(f"{col['red']}Warning: No free GPU found, using CPU{col['reset']}")
         print(f"{col['pink']}Using:{col['reset']} CPU")
         return nmf_decomp(parameters, fdt_matrix, W_mat, H_mat)
+    try:
+        fdt_tensor = torch.from_numpy(fdt_matrix).to(tensor_dtype).to(device)
+        nmf_kwargs = {
+            "W": (fdt_matrix.shape[1], parameters["n_components"]),
+            "H": (fdt_matrix.shape[0], parameters["n_components"]),
+            "rank": parameters["n_components"],
+        }
 
-    fdt_tensor = torch.from_numpy(fdt_matrix).to(tensor_dtype).to(device)
-    nmf_kwargs = {
-        "W": (fdt_matrix.shape[1], parameters["n_components"]),
-        "H": (fdt_matrix.shape[0], parameters["n_components"]),
-        "rank": parameters["n_components"],
-    }
+        if W_mat is not None and H_mat is not None:
+            nmf_kwargs["W"] = torch.tensor(H_mat.T, dtype=tensor_dtype, device=device)
+            nmf_kwargs["H"] = torch.tensor(W_mat, dtype=tensor_dtype, device=device)
 
-    if W_mat is not None and H_mat is not None:
-        nmf_kwargs["W"] = torch.tensor(H_mat.T, dtype=tensor_dtype, device=device)
-        nmf_kwargs["H"] = torch.tensor(W_mat, dtype=tensor_dtype, device=device)
-
-    model = GPU_NMF(**nmf_kwargs).cuda()
-    model.fit(
-        fdt_tensor, beta=2, alpha=parameters["alpha_W"], l1_ratio=parameters["l1_ratio"]
-    )
-
+        model = GPU_NMF(**nmf_kwargs).cuda()
+        model.fit(
+            fdt_tensor,
+            beta=2,
+            alpha=parameters["alpha_W"],
+            l1_ratio=parameters["l1_ratio"],
+        )
+    except Exception as e:
+        error_and_exit(False, f"Unable to perform GPU NMF due to {e}")
     return {
         "white_components": model.W.detach().cpu().to(torch.float16).numpy().T,
         "grey_components": model.H.detach().cpu().to(torch.float16).numpy(),

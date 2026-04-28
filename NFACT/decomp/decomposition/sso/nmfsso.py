@@ -61,6 +61,7 @@ class NMFsso:
         self.nmf_params["init"] = "random"
         self.col = colours()
         self.nmf_decomp = which_nmf(gpu)
+        self.threshold = 3
 
     def _results(self) -> dict:
         """
@@ -104,7 +105,9 @@ class NMFsso:
         nmf_params["random_state"] = None
         nmf_state = self.nmf_decomp(nmf_params, fdt_mat)
         shm.close()
-        nmf_state["white_components"] = thresholding(nmf_state["white_components"], 3)
+        nmf_state["white_components"] = thresholding(
+            nmf_state["white_components"], self.threshold
+        )
         return nmf_state["grey_components"], nmf_state["white_components"]
 
     def _parallel_run(self) -> dict:
@@ -172,15 +175,41 @@ class NMFsso:
         nmf_sso_results: dict
             dict of grey and white matter_components
         """
+        import sys
+        import io
+        import contextlib
+
+        # ANSI: move cursor up 2 lines then erase from there to end of screen
+        _UP2_CLEAR = "\033[2A\033[J"
 
         nmf_sso_results = self._results()
         for iterat in range(self.num_int):
-            nprint(
-                f"{self.col['pink']}Run: {self.col['reset']}{iterat + 1}/{self.num_int}"
+            # --- Capture stdout so internal "Using: ..." prints don't scroll ---
+            _buf = io.StringIO()
+            with contextlib.redirect_stdout(_buf):
+                self.nmf_params["random_state"] = None
+                nmf_state = self.nmf_decomp(self.nmf_params, self.fdt_mat)
+
+            # Extract device line (strip ANSI colour codes for matching, keep for display)
+            _using_line = next(
+                (l for l in _buf.getvalue().splitlines() if "Using:" in l),
+                f"{self.col['pink']}Using:{self.col['reset']} unknown",
             )
-            self.nmf_params["random_state"] = None
-            nmf_state = self.nmf_decomp(self.nmf_params, self.fdt_mat)
+
+            # Overwrite the previous 2 lines after the first iteration
+            if iterat > 0:
+                sys.stdout.write(_UP2_CLEAR)
+
+            sys.stdout.write(
+                f"{self.col['pink']}Run: {self.col['reset']}{iterat + 1}/{self.num_int}\n"
+                f"{_using_line}\n"
+            )
+            sys.stdout.flush()
+
             nmf_sso_results["grey"].append(nmf_state["grey_components"])
+            nmf_state["white_components"] = thresholding(
+                nmf_state["white_components"].astype(np.float32), self.threshold
+            )
             nmf_sso_results["white"].append(nmf_state["white_components"])
 
         return nmf_sso_results
