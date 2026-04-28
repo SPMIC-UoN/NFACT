@@ -1,3 +1,4 @@
+import os
 from NFACT.base.logging import NFACT_logs
 from NFACT.base.utils import Timer, colours, nprint
 from NFACT.base.signithandler import Signit_handler
@@ -36,8 +37,6 @@ from NFACT.decomp.pipes.image_handling import (
 )
 from NFACT.base.matrix_handling import thresholding_components
 from NFACT.decomp.setup.arg_check import process_command_args
-from NFACT.decomp.decomposition.nmf_runs import find_free_gpu_uuid
-import os
 
 
 def nfact_decomp_main(args: dict = None) -> None:
@@ -64,16 +63,6 @@ def nfact_decomp_main(args: dict = None) -> None:
         args = nfact_decomp_args()
         to_exit = True
     col = colours()
-    if args["gpu"] is not None:
-        if "CUDA_VISIBLE_DEVICES" not in os.environ:
-            free_gpu = find_free_gpu_uuid()
-            if free_gpu:
-                os.environ["CUDA_VISIBLE_DEVICES"] = free_gpu
-                print(f"{col['plum']}Using GPU{col['reset']}")
-            else:
-                print(f"{col['red']}No free GPU found, using CPU {col['reset']}")
-                args["gpu"] = None
-
     if args["cifti"]:
         print(
             f"{col['plum']}Cifti option given:{col['reset']} Seeds must be in correct order"

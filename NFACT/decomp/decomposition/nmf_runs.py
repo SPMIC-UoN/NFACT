@@ -1,7 +1,6 @@
 import numpy as np
-from NFACT.base.matrix_handling import load_initialisation
+from NFACT.decomp.decomposition.sso.sso_functions import load_initialisation
 from NFACT.base.utils import colours, error_and_exit
-from NFACT.decomp.decomposition.sso.nmfsso import sso_run
 from sklearn.decomposition import NMF
 from sklearn.utils._testing import ignore_warnings
 from sklearn.exceptions import ConvergenceWarning
@@ -55,7 +54,8 @@ def find_free_gpu_uuid() -> str:
             )
             return uuid
         except Exception:
-            return False
+            continue
+    return None
 
 
 def nmf_gpu_run(
@@ -84,28 +84,45 @@ def nmf_gpu_run(
         dictionary of grey and white matter
         components
     """
+
+    tensor_dtype = torch.bfloat16
+    torch.cuda.empty_cache()
     device = torch.device("cuda")
-    torch.set_default_dtype(torch.float16)
-    tensor_dtype = torch.float16
-    fdt_tensor = torch.from_numpy(fdt_matrix).to(tensor_dtype)
-    fdt_tensor = fdt_tensor.to(device)
+    torch.set_default_dtype(tensor_dtype)
+    col = colours()
+    print(f"{col['pink']}GPU searching{col['reset']}...")
+    gpu_uuid = find_free_gpu_uuid()
+    if gpu_uuid:
+        print(f"{col['pink']}Using:{col['reset']} GPU")
+        os.environ["CUDA_VISIBLE_DEVICES"] = gpu_uuid
+        device = torch.device("cuda")
+    else:
+        print(f"{col['red']}Warning: No free GPU found, using CPU{col['reset']}")
+        print(f"{col['pink']}Using:{col['reset']} CPU")
+        return nmf_decomp(parameters, fdt_matrix, W_mat, H_mat)
+
+    fdt_tensor = torch.from_numpy(fdt_matrix).to(tensor_dtype).to(device)
     nmf_kwargs = {
-        "rank": parameters["components"],
-        "W": (fdt_matrix.shape[1], parameters["components"]),
-        "H": (fdt_matrix.shape[0], parameters["components"]),
+        "W": (fdt_matrix.shape[1], parameters["n_components"]),
+        "H": (fdt_matrix.shape[0], parameters["n_components"]),
+        "rank": parameters["n_components"],
     }
 
     if W_mat is not None and H_mat is not None:
-        nmf_kwargs["W"] = torch.tensor(W_mat, dtype=tensor_dtype, device=device)
-        nmf_kwargs["H"] = torch.tensor(H_mat, dtype=tensor_dtype, device=device)
+        # Pass pre-run matrices to the NMF constructor as tensors
+        # W_mat (grey) is N x R -> torchnmf H
+        # H_mat (white) is R x C -> torchnmf W
+        nmf_kwargs["W"] = torch.tensor(H_mat.T, dtype=tensor_dtype, device=device)
+        nmf_kwargs["H"] = torch.tensor(W_mat, dtype=tensor_dtype, device=device)
 
-    model = GPU_NMF(**nmf_kwargs).to(device)
+    model = GPU_NMF(**nmf_kwargs).cuda()
     model.fit(
-        fdt_tensor, beta=2, alpha=parameters["alpha"], l1_ratio=parameters["l1_ratio"]
+        fdt_tensor, beta=2, alpha=parameters["alpha_W"], l1_ratio=parameters["l1_ratio"]
     )
+
     return {
-        "grey_components": model.W.detach().cpu().numpy(),
-        "white_components": model.H.detach().cpu().numpy(),
+        "white_components": model.W.detach().cpu().to(torch.float16).numpy().T,
+        "grey_components": model.H.detach().cpu().to(torch.float16).numpy(),
     }
 
 
@@ -213,4 +230,6 @@ def nmf_run(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
         return nmf(parameters, fdt_matrix)
 
     print(nmf_string + "SSO")
+    from NFACT.decomp.decomposition.sso.nmfsso import sso_run
+
     return sso_run(fdt_matrix, parameters, args, col)

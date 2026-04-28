@@ -24,9 +24,16 @@ def nfact_decomp_args() -> dict:
     col = colours()
     base_arguments(base_args)
     set_up_args(base_args, col)
-
     decomp_input = base_args.add_argument_group(
         f"{col['plum']}Decomposition inputs{col['reset']}"
+    )
+    decomp_input.add_argument(
+        "-G",
+        "--gpu",
+        dest="gpu",
+        action="store_true",
+        default=False,
+        help="Use GPU for NMF decomposition",
     )
     seed_roi_args(decomp_input)
     decomp_input.add_argument(
