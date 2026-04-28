@@ -9,10 +9,14 @@ import os
 import subprocess
 import sys
 import warnings
-import torch
-from torchnmf.nmf import NMF as GPU_NMF
 
-warnings.filterwarnings("ignore", message=".*Attempting to run cuBLAS.*")
+try:
+    import torch
+    from torchnmf.nmf import NMF as GPU_NMF
+
+    warnings.filterwarnings("ignore", message=".*Attempting to run cuBLAS.*")
+except ImportError:
+    GPU_NMF = None
 
 
 def find_free_gpu_uuid() -> str:
@@ -25,7 +29,8 @@ def find_free_gpu_uuid() -> str:
 
     Returns
     -------
-    str: uuid of free GPU partition
+    str: string object
+        uuid of free GPU partition
     """
     try:
         smi_out = subprocess.check_output(["nvidia-smi", "-L"]).decode("utf-8")
@@ -109,9 +114,6 @@ def nmf_gpu_run(
     }
 
     if W_mat is not None and H_mat is not None:
-        # Pass pre-run matrices to the NMF constructor as tensors
-        # W_mat (grey) is N x R -> torchnmf H
-        # H_mat (white) is R x C -> torchnmf W
         nmf_kwargs["W"] = torch.tensor(H_mat.T, dtype=tensor_dtype, device=device)
         nmf_kwargs["H"] = torch.tensor(W_mat, dtype=tensor_dtype, device=device)
 

@@ -683,17 +683,30 @@ def cumulative_variance(
 ) -> dict:
     """
     Function to calculate total variance
-    explained by adding on additional component
-    and
+    explained by adding on additional component.
+
+    Uses an algebraic reformulation to avoid recomputing the full
+    N x C residual matrix on every iteration:
+
+        ||V - G_k W_k||²_F = ||V||²_F
+                             - 2 · sum(A[:k] * W[:k])
+                             + sum(B[:k,:k] * C[:k,:k])
+
+    where A = G^T V (R x C, computed once),
+          B = G^T G (R x R),
+          C = W W^T (R x R).
+
+    This replaces R × O(NC) operations with one O(RNC) BLAS call
+    plus an O(R²) loop, giving large speedups for many components.
 
     Parameters
     ------------
     fdt_mat: np.ndarray
         orginal fdt matrix
     grey: np.ndarray
-        grey matter NMF
+        grey matter NMF  (N x R)
     white: np.ndarray
-        White matter NMF
+        White matter NMF  (R x C)
 
     Returns
     -------
@@ -703,18 +716,31 @@ def cumulative_variance(
         is explained by adding that component)
     """
     n_components = white.shape[0]
-    ss_total = np.sum((fdt_mat - fdt_mat.mean()) ** 2)
-    X_recon_cum = np.zeros_like(fdt_mat)
-    r2_cumulative = []
+    ss_total = float(np.sum((fdt_mat - fdt_mat.mean()) ** 2))
+    grey_matrix = grey.astype(np.float32, copy=False)
+    white_matrix = white.astype(np.float32, copy=False)
+    data_matrix = fdt_mat.astype(np.float32, copy=False)
+
+    ss_V = float(np.dot(data_matrix.ravel(), data_matrix.ravel()))
+    mat_a = grey_matrix.T @ data_matrix
+    mat_b = grey_matrix.T @ grey_matrix
+    mat_c = white_matrix @ white_matrix.T
+
+    r2_cumulative = np.empty(n_components, dtype=np.float64)
+    inner_AW = 0.0
+    inner_BC = 0.0
 
     for comp in range(n_components):
-        X_recon_cum += np.outer(grey[:, comp], white[comp, :])
-        ss_resid = np.sum((fdt_mat - X_recon_cum) ** 2)
-        r2_cumulative.append(1 - ss_resid / ss_total)
+        inner_AW += float(np.dot(mat_a[comp], white_matrix[comp]))
+        inner_BC += float(mat_b[comp, comp] * mat_c[comp, comp]) + 2.0 * float(
+            np.dot(mat_b[comp, :comp], mat_c[comp, :comp])
+        )
+        ss_resid = ss_V - 2.0 * inner_AW + inner_BC
+        r2_cumulative[comp] = 1.0 - ss_resid / ss_total
 
     return {
-        "cumulative_r2": np.array(r2_cumulative),
-        "per_comp": np.diff(np.concatenate([[0], np.array(r2_cumulative)])),
+        "cumulative_r2": r2_cumulative,
+        "per_comp": np.diff(np.concatenate([[0.0], r2_cumulative])),
     }
 
 

@@ -56,7 +56,7 @@ class NMFsso:
     ) -> None:
         self.num_int = num_int
         self.nmf_params = nmf_params.copy()
-        self.n_jobs = n_jobs
+        self.n_jobs = 1 if gpu else n_jobs
         self.fdt_mat = fdt_mat
         self.nmf_params["init"] = "random"
         self.col = colours()
@@ -322,7 +322,7 @@ def sso_run(fdt_matrix: np.ndarray, parameters: dict, args: dict, col: dict):
     ).run()
     w_components = np.vstack(results_of_comp["white"])
     g_components = np.hstack(results_of_comp["grey"])
-    sim = compute_similairty_matrix(w_components)
+    sim = compute_similairty_matrix(w_components.astype(np.float32))
     dis = sim2dis(sim)
     partitions = clustering_components(dis, args["dim"])
     if args["cluster_save"]:
