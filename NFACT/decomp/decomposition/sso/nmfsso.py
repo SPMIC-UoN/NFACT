@@ -190,13 +190,11 @@ class NMFsso:
                 self.nmf_params["random_state"] = None
                 nmf_state = self.nmf_decomp(self.nmf_params, self.fdt_mat)
 
-            # Extract device line (strip ANSI colour codes for matching, keep for display)
             _using_line = next(
-                (l for l in _buf.getvalue().splitlines() if "Using:" in l),
+                (line for line in _buf.getvalue().splitlines() if "Using:" in line),
                 f"{self.col['pink']}Using:{self.col['reset']} unknown",
             )
 
-            # Overwrite the previous 2 lines after the first iteration
             if iterat > 0:
                 sys.stdout.write(_UP2_CLEAR)
 
