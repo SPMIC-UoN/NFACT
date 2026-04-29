@@ -33,7 +33,9 @@ To install do the following steps
 5. Change into the NFACT folder and install::
 
     cd NFACT
-    pip3 install .
+    pip3 install . (only CPU)
+    pip3 install .[gpu] (if you have an NVIDIA GPU and want to use it)
+    pip3 install -e .[dev] (if you plan to work on NFACT)
 6. Check NFACT is installed by running::
 
     nfact
