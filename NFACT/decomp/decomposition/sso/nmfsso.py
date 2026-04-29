@@ -61,7 +61,7 @@ class NMFsso:
         self.nmf_params["init"] = "random"
         self.col = colours()
         self.nmf_decomp = which_nmf(gpu)
-        self.threshold = 3
+        self.threshold = 2 if gpu else 3
 
     def _results(self) -> dict:
         """
