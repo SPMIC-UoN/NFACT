@@ -36,7 +36,7 @@ dev = [
     'sphinx',
     'sphinx-rtd-theme'
     ]
-
+gpu = ['torchnmf']
 [project.scripts]
 nfact_decomp = "NFACT.decomp.__main__:nfact_decomp_main"
 nfact_pp = "NFACT.preprocess.__main__:nfact_pp_main"

@@ -1,3 +1,4 @@
+import os
 from NFACT.base.logging import NFACT_logs
 from NFACT.base.utils import Timer, colours, nprint
 from NFACT.base.signithandler import Signit_handler
@@ -36,7 +37,6 @@ from NFACT.decomp.pipes.image_handling import (
 )
 from NFACT.base.matrix_handling import thresholding_components
 from NFACT.decomp.setup.arg_check import process_command_args
-import os
 
 
 def nfact_decomp_main(args: dict = None) -> None:
@@ -55,14 +55,14 @@ def nfact_decomp_main(args: dict = None) -> None:
     None
     """
     # Setting up nfact
-
+    # Auto-assign a free GPU before importing PyTorch!
+    os.environ["PYTHONWARNINGS"] = "ignore"
     Signit_handler()
     to_exit = False
     if not args:
         args = nfact_decomp_args()
         to_exit = True
     col = colours()
-    os.environ["PYTHONWARNINGS"] = "ignore"
     if args["cifti"]:
         print(
             f"{col['plum']}Cifti option given:{col['reset']} Seeds must be in correct order"

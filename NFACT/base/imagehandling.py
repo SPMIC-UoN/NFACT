@@ -176,6 +176,7 @@ def save_white_matter(
     None
 
     """
+
     lut_vol = nb.load(path_to_lookup_vol)
     coords = np.loadtxt(coords_path, dtype=int)
     white_matter_vol = mat2vol(

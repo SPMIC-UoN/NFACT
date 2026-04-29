@@ -1147,7 +1147,7 @@ def plot_cluster_stats(
     """
     plt.style.use("bmh")
     plt.figure(2)
-    step = round(clusters_scores["clusternumber"].shape[0] / 100 * 10)
+    step = max(1, round(clusters_scores["clusternumber"].shape[0] / 100 * 10))
     y_pos = np.arange(len(clusters_scores["clusternumber"]))
     position = list(y_pos[::step])
     if y_pos[-1] not in position:

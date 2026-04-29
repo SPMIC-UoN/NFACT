@@ -8,20 +8,15 @@ from NFACT.decomp.decomposition.sso.sso_functions import (
     cumulative_variance,
     save_individual_components,
     save_initialisation,
-    load_initialisation,
 )
 from NFACT.decomp.decomposition.sso.sso_plotting import (
     plot_matrix,
     plot_cluster_stats,
     NMFgraph,
 )
-from NFACT.base.utils import error_and_exit, nprint, colours
+from NFACT.base.utils import nprint, colours
 from NFACT.base.matrix_handling import thresholding
-
-from sklearn.decomposition import NMF
-from sklearn.utils._testing import ignore_warnings
-from sklearn.exceptions import ConvergenceWarning
-
+from NFACT.decomp.decomposition.nmf_runs import which_nmf
 import numpy as np
 from multiprocessing import shared_memory
 from joblib import Parallel, delayed
@@ -30,48 +25,6 @@ import pandas as pd
 import warnings
 
 warnings.filterwarnings("ignore")
-
-
-@ignore_warnings(category=ConvergenceWarning)
-def nmf_decomp(
-    parameters: dict,
-    fdt_matrix: np.ndarray,
-    W_mat: np.ndarray = None,
-    H_mat: np.ndarray = None,
-) -> dict:
-    """
-    Function to perform NMF.
-
-    Parameters
-    ----------
-    parameters: dict
-        dictionary of hyperparameters
-    fdt_matrix: np.ndarray
-        matrix to perform decomposition
-        on
-    W_mat: ndarray
-        previous W matrix to initiate
-        an NMF run on
-    H_mat: ndarray
-        previous H matrix to initiate
-        an NMF run on
-
-    Returns
-    -------
-    dict: dictionary
-        dictionary of grey and white matter
-        components
-    """
-    if W_mat is not None and H_mat is not None:
-        parameters = parameters.copy()
-        parameters["init"] = "custom"
- 
-    decomp = NMF(**parameters)
-    try:
-        grey_matter = decomp.fit_transform(fdt_matrix, W=W_mat, H=H_mat)
-    except Exception as e:
-        error_and_exit(False, f"Unable to perform NMF due to {e}")
-    return {"grey_components": grey_matter, "white_components": decomp.components_}
 
 
 class NMFsso:
@@ -99,13 +52,16 @@ class NMFsso:
         num_int: int,
         nmf_params: dict,
         n_jobs: int,
+        gpu: bool = False,
     ) -> None:
         self.num_int = num_int
         self.nmf_params = nmf_params.copy()
-        self.n_jobs = n_jobs
+        self.n_jobs = 1 if gpu else n_jobs
         self.fdt_mat = fdt_mat
         self.nmf_params["init"] = "random"
         self.col = colours()
+        self.nmf_decomp = which_nmf(gpu)
+        self.threshold = 2 if gpu else 3
 
     def _results(self) -> dict:
         """
@@ -147,9 +103,11 @@ class NMFsso:
         shm = shared_memory.SharedMemory(name=shm_name)
         fdt_mat = np.ndarray(shape, dtype=dtype, buffer=shm.buf)
         nmf_params["random_state"] = None
-        nmf_state = nmf_decomp(nmf_params, fdt_mat)
-        shm.close()  # detach, do NOT unlink here
-        nmf_state["white_components"] = thresholding(nmf_state["white_components"], 3)
+        nmf_state = self.nmf_decomp(nmf_params, fdt_mat)
+        shm.close()
+        nmf_state["white_components"] = thresholding(
+            nmf_state["white_components"], self.threshold
+        )
         return nmf_state["grey_components"], nmf_state["white_components"]
 
     def _parallel_run(self) -> dict:
@@ -217,15 +175,39 @@ class NMFsso:
         nmf_sso_results: dict
             dict of grey and white matter_components
         """
+        import sys
+        import io
+        import contextlib
+
+        # ANSI: move cursor up 2 lines then erase from there to end of screen
+        _UP2_CLEAR = "\033[2A\033[J"
 
         nmf_sso_results = self._results()
         for iterat in range(self.num_int):
-            nprint(
-                f"{self.col['pink']}Run: {self.col['reset']}{iterat + 1}/{self.num_int}"
+            # --- Capture stdout so internal "Using: ..." prints don't scroll ---
+            _buf = io.StringIO()
+            with contextlib.redirect_stdout(_buf):
+                self.nmf_params["random_state"] = None
+                nmf_state = self.nmf_decomp(self.nmf_params, self.fdt_mat)
+
+            _using_line = next(
+                (line for line in _buf.getvalue().splitlines() if "Using:" in line),
+                f"{self.col['pink']}Using:{self.col['reset']} unknown",
             )
-            self.nmf_params["random_state"] = None
-            nmf_state = nmf_decomp(self.nmf_params, self.fdt_mat)
+
+            if iterat > 0:
+                sys.stdout.write(_UP2_CLEAR)
+
+            sys.stdout.write(
+                f"{self.col['pink']}Run: {self.col['reset']}{iterat + 1}/{self.num_int}\n"
+                f"{_using_line}\n"
+            )
+            sys.stdout.flush()
+
             nmf_sso_results["grey"].append(nmf_state["grey_components"])
+            nmf_state["white_components"] = thresholding(
+                nmf_state["white_components"].astype(np.float32), self.threshold
+            )
             nmf_sso_results["white"].append(nmf_state["white_components"])
 
         return nmf_sso_results
@@ -343,12 +325,31 @@ def nmf_sso_output_wrapper(
 
 
 def sso_run(fdt_matrix: np.ndarray, parameters: dict, args: dict, col: dict):
+    """
+    Function to run nmf-sso.
+
+    Parameters
+    ----------
+    fdt_matrix: np.ndarray
+        fdt_matrix to decompose
+    parameters: dict
+        dictionary of hyperparameters
+    args: dict
+        dictionary of cmd arguments
+    col: dict
+        dictionary of colours
+
+    Returns
+    -------
+    dict:
+        dictionary of grey and white matter components
+    """
     results_of_comp = NMFsso(
-        fdt_matrix, args["iterations"], parameters, args["n_cores"]
+        fdt_matrix, args["iterations"], parameters, args["n_cores"], args["gpu"]
     ).run()
     w_components = np.vstack(results_of_comp["white"])
     g_components = np.hstack(results_of_comp["grey"])
-    sim = compute_similairty_matrix(w_components)
+    sim = compute_similairty_matrix(w_components.astype(np.float32))
     dis = sim2dis(sim)
     partitions = clustering_components(dis, args["dim"])
     if args["cluster_save"]:
@@ -377,6 +378,7 @@ def sso_run(fdt_matrix: np.ndarray, parameters: dict, args: dict, col: dict):
         print(f"{col['light_pink']}Saving Initialisation{col['reset']}")
         save_initialisation(w_mat, h_mat, args["outdir"])
     print(f"{col['light_pink']}Initiating final NMF{col['reset']}")
+    nmf_decomp = which_nmf(args["gpu"])
     final_nmf = nmf_decomp(parameters, fdt_matrix, W_mat=w_mat, H_mat=h_mat)
     print(f"{col['light_pink']}Calculating Variance Explained{col['reset']}")
     variance = cumulative_variance(
@@ -384,47 +386,3 @@ def sso_run(fdt_matrix: np.ndarray, parameters: dict, args: dict, col: dict):
     )
     nmf_sso_output_wrapper(args["outdir"], sim, dis, partitions, centroids, variance)
     return final_nmf
-
-
-def nmf_run(fdt_matrix: np.ndarray, parameters: dict, args: dict) -> dict:
-    """
-    Function to run nmf, either sso run
-    or singular run.
-
-    Parameters
-    ----------
-    fdt_matrix: np.ndarray
-        fdt_matrix to decompose
-    parameters: dict
-        NMF parameters
-    args: dict
-        cmd arguments
-
-    Returns
-    -------
-    dict: dictionary
-        dictionary of grey and white matter
-        components
-    """
-    col = colours()
-    nmf_string = f"{col['pink']}NMF Mode:{col['reset']} "
-    if args['no_sso'] and (args["gm_matrix"] or args["wm_matrix"]):
-        error_and_exit(False, "Unlcear which type of run to perform. Either use --no-sso or give initialisation matricies not both")
-    if args["wm_matrix"] or args["gm_matrix"]:
-        intialisation_mat = load_initialisation(args["gm_matrix"], args["wm_matrix"])
-
-        if intialisation_mat:
-            print(nmf_string + "Initialisation Run")
-            parameters["n_components"] = intialisation_mat["wm_mat"].shape[0]
-            return nmf_decomp(
-                parameters,
-                fdt_matrix,
-                W_mat=np.ascontiguousarray(intialisation_mat["gm_mat"]),
-                H_mat=np.ascontiguousarray(intialisation_mat["wm_mat"]),
-            )
-    if args["no_sso"]:
-        print(nmf_string + "Single Run")
-        return nmf_decomp(parameters, fdt_matrix)
-
-    print(nmf_string + "SSO")
-    return sso_run(fdt_matrix, parameters, args, col)

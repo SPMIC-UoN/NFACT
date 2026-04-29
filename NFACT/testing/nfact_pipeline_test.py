@@ -5,7 +5,7 @@ from NFACT.decomp.decomposition.matrix_decomposition import (
     get_parameters,
     sign_flip,
 )
-from NFACT.decomp.decomposition.sso.nmfsso import nmf_decomp
+from NFACT.decomp.decomposition.nmf_runs import nmf_decomp
 from NFACT.decomp.pipes.image_handling import create_wta_map
 from NFACT.base.matrix_handling import normalise_components, load_fdt_matrix
 from NFACT.dual_reg.dual_regression.dual_regression_methods import (

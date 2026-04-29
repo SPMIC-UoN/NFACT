@@ -24,9 +24,16 @@ def nfact_decomp_args() -> dict:
     col = colours()
     base_arguments(base_args)
     set_up_args(base_args, col)
-
     decomp_input = base_args.add_argument_group(
         f"{col['plum']}Decomposition inputs{col['reset']}"
+    )
+    decomp_input.add_argument(
+        "-G",
+        "--gpu",
+        dest="gpu",
+        action="store_true",
+        default=False,
+        help="Use GPU for NMF decomposition",
     )
     seed_roi_args(decomp_input)
     decomp_input.add_argument(
@@ -36,7 +43,7 @@ def nfact_decomp_args() -> dict:
         default=False,
         help="""
         Absolute path to a previously averaged group folder. NFACT will use this matrix,
-        average_matrix2, coords_for_fdt_matrix2 and tract_space_coords
+        average_matrix2, coords_for_fdt_matrix2, tract_space_coords
         and lookup_tractspace.nii.gz files in the decomposition.
         """,
     )
