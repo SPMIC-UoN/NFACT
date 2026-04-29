@@ -43,7 +43,7 @@ def nfact_decomp_args() -> dict:
         default=False,
         help="""
         Absolute path to a previously averaged group folder. NFACT will use this matrix,
-        average_matrix2, coords_for_fdt_matrix2 and tract_space_coords
+        average_matrix2, coords_for_fdt_matrix2, tract_space_coords
         and lookup_tractspace.nii.gz files in the decomposition.
         """,
     )

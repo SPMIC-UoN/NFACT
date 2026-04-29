@@ -43,12 +43,22 @@ In some cases this might be too liberal and might need to be adjusted or turned 
 White and Grey matter connectivity components can also be normalised with the zscore maps saved, which is useful for visualization. Normalised output coverts output into z-scores
 Winner takes all maps can be created with the brain represented by which components are the "winner" in that region. 
 
+GPU
+=====
+NFACT decomp supports GPUs to speed up the process using torchnmf. This is done using the ``-G``, ``--gpu`` argument.
+Depedning on your CUDA environment you might need to install a version of pytorch that supports your CUDA version. See `pytorch website <https://pytorch.org/get-started/locally/>`_ for more information.
+
+**NOTE**
+The FDT matrix can be really big (GBs). If running with GPU, and getting errors about memory errors then try and specify a GPU that has larger memory limits by setting the env varible `CUDA_VISIBLE_DEVICES` to a specific GPU. 
+If this doesn't work or there isn't a bigger GPU memory, try reducing the number of components (``--dim``, ``-d``) or consider re running the nfact_pp with lower resolution seeds/target and less seeds. 
+If neither of these are possible, and you are running sso, try parallelization (``--n_cores``, ``-n``) to distribute the work over multiple CPUs/ reduce the number of iterations. 
+
 Usage
 =====
 
 .. code-block:: text
 
-    nfact_decomp [-h] [-hh] [-O] [-l LIST_OF_SUBJECTS] [-o OUTDIR] [--seeds SEEDS] 
+    nfact_decomp [-h] [-hh] [-O] [-l LIST_OF_SUBJECTS][-o OUTDIR] [-G] [--seeds SEEDS] 
     [--roi ROI] [-f CONFIG] [-a ALGO] [-d DIM] [-i ITERATIONS] [-n N_CORES] 
     [-X NO_SSO] [-C] [-D] [-W] [-z WTA_ZTHR] [-N] [-t THRESHOLD] [-c COMPONENTS]
     [-p PCA_TYPE] [-S]
@@ -68,13 +78,15 @@ Set Up options:
     Path to output directory
 
 Decomposition inputs:
+  -G, --gpu
+    Use GPU for NMF decomposition
   -s, --seeds 
     Absolute path to a text file of seed(s) used in nfact_pp/probtrackx. If used nfact_pp this is the seeds_for_decomp.txt in the nfact_pp directory.
   -r, --roi 
     Absolute path to a text file containing the absolute path ROI(s) paths to restrict seeding to (e.g. medial wall masks). This is not needed if seeds are not surfaces. 
     If used nfact_pp then this is the roi_for_decomp.txt file in the nfact_pp directory.
   -m, --matrix 
-    Absolute path to a previously averaged group folder. NFACT will use this matrix, average_matrix2, coords_for_fdt_matrix2 and tract_space_coords and lookup_tractspace.nii.gz files in the decomposition.
+    Absolute path to a previously averaged group folder. NFACT will use this matrix, average_matrix2, coords_for_fdt_matrix2, tract_space_coords and lookup_tractspace.nii.gz files in the decomposition.
   -f, --config_file 
     Absolute path to a configuration file. Congifuration file provides available hyperparameters for ICA and NMF. 
     Use nfact_config -D to create a config file. Please see sckit learn documentation for NMF and FASTICA for further details
