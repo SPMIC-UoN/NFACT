@@ -131,7 +131,7 @@ def nmf_dual_regression(
         elif not torch.cuda.is_available():
             nprint("No CUDA device found – falling back to CPU NNLS")
         else:
-            return nnls_gpu_pgd(components, connectivity_matrix)
+            return nnls_gpu(components, connectivity_matrix)
 
     if int(n_jobs) <= 1 or not n_jobs:
         return nnls_non_parallel(components, connectivity_matrix)
@@ -190,7 +190,62 @@ def nnls_non_parallel(components: dict, connectivity_matrix: np.ndarray):
     }
 
 
-def nnls_gpu_pgd(
+def _nnls_solver(
+    component_matrix: np.ndarray,
+    connectivity_matrix: np.ndarray,
+    max_iter: int = 3000,
+    base_tol: float = 1e-6,
+    device: str = "cuda",
+) -> np.ndarray:
+    """
+    Solve NNLS using projected gradient descent
+
+    Parameters
+    ----------
+    component_matrix: np.ndarray
+        Matrix of components
+    connectivity_matrix: np.ndarray
+        Subjects' loaded connectivity matrix
+    max_iter: int
+        Maximum number of iterations
+    base_tol: float
+        Tolerance for convergence
+    device: str
+        Device to run the solver on
+
+    Returns
+    -------
+    np.ndarray
+       egression coefficients
+
+    """
+    comp_mat_tensor = torch.tensor(
+        component_matrix, dtype=torch.bfloat16, device=device
+    )
+    connectivity_mat_tensor = torch.tensor(
+        connectivity_matrix, dtype=torch.bfloat16, device=device
+    )
+    comp_mat_tensor_t = comp_mat_tensor.T @ comp_mat_tensor
+    comp_mat_trans_conn = comp_mat_tensor.T @ connectivity_mat_tensor
+    lipschitz = torch.linalg.norm(comp_mat_tensor_t.float(), ord=2)
+    step_size = 1.9 / lipschitz
+    regression_x = torch.zeros(
+        comp_mat_tensor.shape[1],
+        connectivity_mat_tensor.shape[1],
+        device=device,
+        dtype=torch.float32,
+    )
+    for _ in range(max_iter):
+        regression_x_bf16 = regression_x.to(torch.bfloat16)
+        grad = comp_mat_tensor_t @ regression_x_bf16 - comp_mat_trans_conn
+        regression_x_new = (regression_x_bf16 - step_size * grad.float()).clamp(min=0.0)
+        if torch.linalg.norm((regression_x_new - regression_x).float()) < base_tol:
+            break
+        regression_x = regression_x_new
+    return regression_x.float().cpu().numpy()
+
+
+def nnls_gpu(
     components: dict,
     connectivity_matrix: np.ndarray,
     max_iter: int = 3000,
@@ -223,51 +278,16 @@ def nnls_gpu_pgd(
         Dictionary of components.
     """
     col = colours()
-    device = "cuda"
-
-    def _pgd(A: np.ndarray, B: np.ndarray) -> np.ndarray:
-        """
-        Projected gradient descent for batched NNLS.
-
-        A : (m, k)  – dictionary / component matrix
-        B : (m, n)  – observations (all columns solved at once)
-        X : (k, n)  – solution, >= 0
-        """
-        A_t = torch.tensor(A, dtype=torch.bfloat16, device=device)
-        B_t = torch.tensor(B, dtype=torch.bfloat16, device=device)
-
-        # Pre-compute Gram matrix and A^T B once
-        AtA = A_t.T @ A_t  # (k, k)
-        AtB = A_t.T @ B_t  # (k, n)
-
-        # Step size = 1 / spectral norm of A^T A  (Lipschitz constant)
-        # linalg.norm(ord=2) requires at least float32 – upcast for this scalar op only
-        L = torch.linalg.norm(AtA.float(), ord=2)
-        step = 1.0 / L
-
-        X = torch.zeros(A_t.shape[1], B_t.shape[1], device=device, dtype=torch.bfloat16)
-        for _ in range(max_iter):
-            grad = AtA @ X - AtB  # (k, n)
-            X_new = (X - step * grad).clamp(min=0.0)
-            if torch.linalg.norm((X_new - X).float()) < tol:
-                break
-            X = X_new
-
-        # NumPy has no bfloat16 dtype — cast to float32 before converting
-        return X.float().cpu().numpy()
 
     nprint(f"{col['pink']}Regression (GPU):{col['reset']} White Matter")
-    # Solve: grey_components @ WM = connectivity_matrix  => WM shape (k, n_wm)
-
-    wm_component_white_map = _pgd(
-        components["grey_components"], connectivity_matrix
-    )  # (k, n_wm)
+    wm_component_white_map = _nnls_solver(
+        components["grey_components"], connectivity_matrix, max_iter, tol
+    )
 
     nprint(f"{col['pink']}Regression (GPU):{col['reset']} Grey Matter")
-    # Solve: WM^T @ GM^T = connectivity_matrix^T  => GM shape (k, n_gm)
-    gm_component_grey_map = _pgd(
-        wm_component_white_map.T, connectivity_matrix.T
-    )  # (k, n_gm)
+    gm_component_grey_map = _nnls_solver(
+        wm_component_white_map.T, connectivity_matrix.T, max_iter, tol
+    )
 
     return {
         "grey_components": gm_component_grey_map.T,
