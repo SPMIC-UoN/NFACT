@@ -216,7 +216,7 @@ def dual_regression_pipeline(
     except Exception as e:
         error_and_exit(False, f"Unable to save images due to {e}")
 
-    nprint(f"{col['pink']}Run Time:{col['reset']}: {t_timer.how_long()}", to_flush=True)
+    nprint(f"{col['pink']}Run Time{col['reset']}: {t_timer.how_long()}", to_flush=True)
     nprint(f"{col['pink']}Completed{col['reset']}: {sub_id}", to_flush=True)
     return None
 
