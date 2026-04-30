@@ -40,7 +40,7 @@ def nfactdr_args() -> dict:
         dest="gpu",
         action="store_true",
         default=False,
-        help="Use GPU for NMF decomposition",
+        help="Use GPU for NMF projections.",
     )
     algo_arg(dr_args)
     seed_roi_args(dr_args)

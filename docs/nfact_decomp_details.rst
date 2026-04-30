@@ -43,8 +43,8 @@ In some cases this might be too liberal and might need to be adjusted or turned 
 White and Grey matter connectivity components can also be normalised with the zscore maps saved, which is useful for visualization. Normalised output coverts output into z-scores
 Winner takes all maps can be created with the brain represented by which components are the "winner" in that region. 
 
-GPU
-=====
+GPU acceleration
+================
 NFACT decomp supports GPUs to speed up the process using torchnmf. This is done using the ``-G``, ``--gpu`` argument.
 Depedning on your CUDA environment you might need to install a version of pytorch that supports your CUDA version. See `pytorch website <https://pytorch.org/get-started/locally/>`_ for more information.
 
