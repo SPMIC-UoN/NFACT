@@ -4,12 +4,20 @@ from scipy.optimize import nnls
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
+try:
+    import torch
+
+    _TORCH_AVAILABLE = True
+except ImportError:
+    _TORCH_AVAILABLE = False
+
 
 def run_decomp(
     decomp: object,
     components: dict,
     connectivity_matrix: np.ndarray,
     parallel: int = None,
+    **kwargs,
 ) -> dict:
     """
     Function to
@@ -31,7 +39,7 @@ def run_decomp(
         dictionary of components
     """
     try:
-        components = decomp(components, connectivity_matrix, parallel)
+        components = decomp(components, connectivity_matrix, parallel, **kwargs)
     except ValueError as e:
         error_and_exit(
             False,
@@ -90,7 +98,10 @@ def ica_dual_regression(
 
 
 def nmf_dual_regression(
-    components: dict, connectivity_matrix: np.ndarray, n_jobs: int = 1
+    components: dict,
+    connectivity_matrix: np.ndarray,
+    n_jobs: int = 1,
+    use_gpu: bool = False,
 ) -> dict:
     """
     Dual regression function for NMF.
@@ -104,12 +115,23 @@ def nmf_dual_regression(
     n_jobs: int
         Number of parallel jobs for computation.
         Default is 1 (all available CPUs).
+    use_gpu: bool
+        If True, attempt GPU-accelerated NNLS via projected
+        gradient descent on CUDA. Falls back to CPU if torch
+        or CUDA is unavailable. Default is False.
 
     Returns
     -------
     dict
         Dictionary of components.
     """
+    if use_gpu:
+        if not _TORCH_AVAILABLE:
+            nprint("PyTorch not installed – falling back to CPU NNLS")
+        elif not torch.cuda.is_available():
+            nprint("No CUDA device found – falling back to CPU NNLS")
+        else:
+            return nnls_gpu_pgd(components, connectivity_matrix)
 
     if int(n_jobs) <= 1 or not n_jobs:
         return nnls_non_parallel(components, connectivity_matrix)
@@ -147,6 +169,7 @@ def nnls_non_parallel(components: dict, connectivity_matrix: np.ndarray):
             )
         ]
     )
+
     nprint(f"{col['pink']}Regression:{col['reset']} Grey Matter")
     gm_component_grey_map = np.array(
         [
@@ -164,6 +187,91 @@ def nnls_non_parallel(components: dict, connectivity_matrix: np.ndarray):
     return {
         "grey_components": gm_component_grey_map,
         "white_components": wm_component_white_map.T,
+    }
+
+
+def nnls_gpu_pgd(
+    components: dict,
+    connectivity_matrix: np.ndarray,
+    max_iter: int = 3000,
+    tol: float = 1e-6,
+) -> dict:
+    """
+    GPU-accelerated NNLS dual regression using projected gradient descent.
+
+    Solves  min ||AX - B||_F  subject to  X >= 0
+    for all columns of B simultaneously as a single batched matrix
+    operation on CUDA. Non-negativity is enforced by clamping
+    (projection onto the non-negative orthant, equivalent to ReLU).
+
+    Parameters
+    ----------
+    components: dict
+        Dictionary of components.
+    connectivity_matrix: np.ndarray
+        Subjects' loaded connectivity matrix.
+    max_iter: int
+        Maximum number of projected-gradient iterations.
+        Default is 3000.
+    tol: float
+        Convergence tolerance on the Frobenius norm of the
+        update step. Default is 1e-6.
+
+    Returns
+    -------
+    dict
+        Dictionary of components.
+    """
+    col = colours()
+    device = "cuda"
+
+    def _pgd(A: np.ndarray, B: np.ndarray) -> np.ndarray:
+        """
+        Projected gradient descent for batched NNLS.
+
+        A : (m, k)  – dictionary / component matrix
+        B : (m, n)  – observations (all columns solved at once)
+        X : (k, n)  – solution, >= 0
+        """
+        A_t = torch.tensor(A, dtype=torch.bfloat16, device=device)
+        B_t = torch.tensor(B, dtype=torch.bfloat16, device=device)
+
+        # Pre-compute Gram matrix and A^T B once
+        AtA = A_t.T @ A_t  # (k, k)
+        AtB = A_t.T @ B_t  # (k, n)
+
+        # Step size = 1 / spectral norm of A^T A  (Lipschitz constant)
+        # linalg.norm(ord=2) requires at least float32 – upcast for this scalar op only
+        L = torch.linalg.norm(AtA.float(), ord=2)
+        step = 1.0 / L
+
+        X = torch.zeros(A_t.shape[1], B_t.shape[1], device=device, dtype=torch.bfloat16)
+        for _ in range(max_iter):
+            grad = AtA @ X - AtB  # (k, n)
+            X_new = (X - step * grad).clamp(min=0.0)
+            if torch.linalg.norm((X_new - X).float()) < tol:
+                break
+            X = X_new
+
+        # NumPy has no bfloat16 dtype — cast to float32 before converting
+        return X.float().cpu().numpy()
+
+    nprint(f"{col['pink']}Regression (GPU):{col['reset']} White Matter")
+    # Solve: grey_components @ WM = connectivity_matrix  => WM shape (k, n_wm)
+
+    wm_component_white_map = _pgd(
+        components["grey_components"], connectivity_matrix
+    )  # (k, n_wm)
+
+    nprint(f"{col['pink']}Regression (GPU):{col['reset']} Grey Matter")
+    # Solve: WM^T @ GM^T = connectivity_matrix^T  => GM shape (k, n_gm)
+    gm_component_grey_map = _pgd(
+        wm_component_white_map.T, connectivity_matrix.T
+    )  # (k, n_gm)
+
+    return {
+        "grey_components": gm_component_grey_map.T,
+        "white_components": wm_component_white_map,
     }
 
 

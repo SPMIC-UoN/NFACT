@@ -34,6 +34,14 @@ def nfactdr_args() -> dict:
     dr_args = base_args.add_argument_group(
         f"{col['pink']}Dual Regression options{col['reset']}"
     )
+    dr_args.add_argument(
+        "-G",
+        "--gpu",
+        dest="gpu",
+        action="store_true",
+        default=False,
+        help="Use GPU for NMF decomposition",
+    )
     algo_arg(dr_args)
     seed_roi_args(dr_args)
     dr_args.add_argument(

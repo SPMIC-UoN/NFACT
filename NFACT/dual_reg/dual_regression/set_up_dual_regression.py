@@ -197,7 +197,6 @@ def run_on_cluster(args: dict, paths: dict) -> None:
     """
 
     col = colours()
-    nprint(f"{col['pink']}Running{col['reset']}: Cluster")
     method = "Regression" if args["algo"] == "ica" else "Non-negative Regression"
     nprint(f"{col['pink']}DR Method:{col['reset']} {method}")
     nprint(f"{col['pink']}Submtting to{col['reset']}: {args['cluster_queue']}")
@@ -223,8 +222,6 @@ def run_locally(args: dict, paths: dict) -> None:
     None
     """
     col = colours()
-
-    nprint(f"{col['pink']}Running:{col['reset']} Locally")
     method = "Regression" if args["algo"] == "ica" else "Non-negative Regression"
     nprint(f"{col['pink']}DR Method:{col['reset']} {method}")
     nprint(f"{col['pink']}Obtaining:{col['reset']} Components")
@@ -252,6 +249,7 @@ def run_locally(args: dict, paths: dict) -> None:
             roi=args["roi"],
             parallel=args["n_cores"],
             components=components,
+            use_gpu=args["gpu"],
             dscalar=args["cifti"],
             threshold=args["threshold"],
             normalise=args["normalise"],
