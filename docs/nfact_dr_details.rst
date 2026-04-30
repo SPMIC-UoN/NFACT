@@ -29,14 +29,18 @@ nfact_dr jobs can be sent to a high performance computing cluster. Please see `H
 What is unquie about nfact_dr is it can submit jobs to a HPC cluster and parallel the dual regression within a job. 
 The job sumitted is the individual subject but the dual regression within that subject can be parallelized.
 
+GPU acceleration
+==================
+NFACT DR can use a GPU to accelerate the dual regression step. This is only applicable for NMF algorithms (non-negative least squares).
 
+Please see the `GPU acceleration <nfact_decomp_details.html#gpu-acceleration>`_ page for more details.
 
 Usage
 =====
 
 .. code-block:: text
 
-    nfact_dr [-h] [-hh] [-O] [-l LIST_OF_SUBJECTS] [-o OUTDIR] [-a ALGO] [--seeds SEEDS] 
+    nfact_dr [-h] [-hh] [-O] [-l LIST_OF_SUBJECTS] [-o OUTDIR] [-G] [-a ALGO] [--seeds SEEDS] 
     [--roi ROI] [-d NFACT_DECOMP_DIR] [-dd DECOMP_DIR] [-N] [-D] [-n N_CORES] 
     [-C] [-cq CLUSTER_QUEUE] [-cr CLUSTER_RAM] [-ct CLUSTER_TIME] [-cqos CLUSTER_QOS]
 
@@ -57,6 +61,8 @@ Set Up options:
     Path to output directory
 
 Dual Regression options:
+  -G, --gpu 
+    Use GPU for NMF projections.
   -a, --algo 
     Which decomposition algorithm. Options are: NMF (default), or ICA. This is case insensitive.
   -s, --seeds 

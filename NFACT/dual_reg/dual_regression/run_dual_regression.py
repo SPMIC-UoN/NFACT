@@ -6,10 +6,11 @@ from NFACT.dual_reg.dual_regression.dual_regression_methods import (
     run_decomp,
 )
 from NFACT.dual_reg.nfact_dr_functions import save_dual_regression_images
-from NFACT.base.utils import colours, error_and_exit, nprint
+from NFACT.base.utils import colours, error_and_exit, nprint, Timer
 from NFACT.base.matrix_handling import thresholding_components, normalise_components
 import argparse
 import os
+from NFACT.base.gpu import find_free_gpu_uuid
 import numpy as np
 
 
@@ -60,6 +61,12 @@ def cluster_mode_args() -> dict:
         action="store_true",
         help="Save a normalised version of the components",
     )
+    parser.add_argument(
+        "--gpu",
+        default=False,
+        action="store_true",
+        help="Use GPU-accelerated NNLS (NMF only). Requires PyTorch + CUDA.",
+    )
     return vars(parser.parse_args())
 
 
@@ -77,6 +84,7 @@ def dual_regression_pipeline(
     dscalar: bool = False,
     threshold: int = 3,
     normalise: bool = False,
+    use_gpu: bool = False,
 ) -> None:
     """
     The dual regression pipeline function.
@@ -120,12 +128,24 @@ def dual_regression_pipeline(
     normalise: bool = False
         save a normalised version
         of the components
+    use_gpu: bool = False
+        use GPU-accelerated NNLS (NMF only).
+        Requires PyTorch + CUDA.
 
     Returns
     -------
     None
     """
     col = colours()
+    if use_gpu:
+        try:
+            os.environ["CUDA_VISIBLE_DEVICES"] = find_free_gpu_uuid()
+        except Exception as e:
+            nprint(
+                f"{col['red']}Cannot find GPU ({e}){col['reset']}: Using CPU",
+                to_flush=True,
+            )
+            use_gpu = False
     nprint("-" * 100)
     if not components:
         nprint(
@@ -142,7 +162,8 @@ def dual_regression_pipeline(
             )
         except Exception as e:
             error_and_exit(False, f"Unable to find components due to {e}")
-
+    t_timer = Timer()
+    t_timer.tic()
     nprint(f"{col['pink']}Subject ID{col['reset']}: {sub_id}", to_flush=True)
     nprint(f"{col['pink']}Obtaining{col['reset']}: FDT Matrix")
 
@@ -161,7 +182,7 @@ def dual_regression_pipeline(
 
     method = nmf_dual_regression if algo.lower() == "nmf" else ica_dual_regression
     try:
-        dr_results = run_decomp(method, components, matrix, parallel)
+        dr_results = run_decomp(method, components, matrix, parallel, use_gpu=use_gpu)
     except Exception as e:
         error_and_exit(False, f"Dual regression failed due to {e}")
 
@@ -195,12 +216,12 @@ def dual_regression_pipeline(
     except Exception as e:
         error_and_exit(False, f"Unable to save images due to {e}")
 
+    nprint(f"{col['pink']}Run Time{col['reset']}: {t_timer.how_long()}", to_flush=True)
     nprint(f"{col['pink']}Completed{col['reset']}: {sub_id}", to_flush=True)
     return None
 
 
 if __name__ == "__main__":
-    # env needed for the cluster or its 24 hours+
     os.environ["OMP_NUM_THREADS"] = "1"
     os.environ["MKL_NUM_THREADS"] = "1"
     os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -218,4 +239,5 @@ if __name__ == "__main__":
         dscalar=args["dscalar"],
         threshold=args["threshold"],
         normalise=args["normalise"],
+        use_gpu=args["gpu"],
     )
