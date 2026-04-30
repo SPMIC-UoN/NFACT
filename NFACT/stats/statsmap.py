@@ -54,8 +54,12 @@ def get_subjects(path: str, img_type: str, group_mode: bool) -> list:
     if group_mode:
         return glob(os.path.join(path, f"{img_type}_*"))
     subjects = read_file_to_list(path)
-    return [glob(os.path.join(os.path.dirname(sub), f"{img_type}_{os.path.basename(sub)}*"))[0] for sub in subjects]
-
+    return [
+        glob(
+            os.path.join(os.path.dirname(sub), f"{img_type}_{os.path.basename(sub)}*")
+        )[0]
+        for sub in subjects
+    ]
 
 
 def merge_components(
@@ -81,7 +85,7 @@ def merge_components(
         data = thresholding(data, threshold)
         return np.sum(data_to_merge[:, :, :, comp], axis=3)
     data = data_to_merge[:, comp]
-    data = thresholding(data, threshold)          
+    data = thresholding(data, threshold)
     return np.sum(data, axis=1)
 
 
@@ -101,7 +105,7 @@ def create_vol_map(vol_path: str, comp: int, threshold: float) -> np.ndarray:
     Returns
     -------
     np.ndarray: array
-        array of merged components  
+        array of merged components
     """
     vol_data = nib.load(vol_path).get_fdata()
     return merge_components(vol_data, comp, threshold)
@@ -130,7 +134,9 @@ def merge_volumes(subjects: list, comp: list, threshold: float) -> np.ndarray:
     return np.stack(subject_maps, axis=3)
 
 
-def get_group_maps(group_w: str, group_g: str, comp: int, threshold: float  ) -> np.ndarray:
+def get_group_maps(
+    group_w: str, group_g: str, comp: int, threshold: float
+) -> np.ndarray:
     """
     Function to get group maps
 
@@ -309,9 +315,15 @@ def process_cifti(cifti_path: str, comp: int, threshold: float) -> dict:
         arrays
     """
     cifit_data = get_cifti_data(cifti_path)
-    l_surf = merge_components(cifit_data["L_surf"], comp, threshold=threshold, vol=False)
-    r_surf = merge_components(cifit_data["R_surf"], comp, threshold=threshold, vol=False)
-    vol_comp = merge_components(cifit_data["vol"].get_fdata(), comp, threshold=threshold, vol=True)
+    l_surf = merge_components(
+        cifit_data["L_surf"], comp, threshold=threshold, vol=False
+    )
+    r_surf = merge_components(
+        cifit_data["R_surf"], comp, threshold=threshold, vol=False
+    )
+    vol_comp = merge_components(
+        cifit_data["vol"].get_fdata(), comp, threshold=threshold, vol=True
+    )
     return {"l_surf": l_surf, "r_surf": r_surf, "vol": vol_comp}
 
 
@@ -510,7 +522,6 @@ def statsmap_main(args: dict) -> None:
         subjects_w[0],
         subject_W_maps,
         os.path.join(args["stats_dir"], f"W_{args['map_name']}.nii.gz"),
-        
     )
 
     print(f"\n{col['plum']}Working on Grey matter files{col['reset']}")
@@ -524,9 +535,9 @@ def statsmap_main(args: dict) -> None:
 
     if group_mode or args["skip"]:
         return
-    
+
     print(f"\n{col['plum']}Calculating variance maps{col['reset']}")
-    if args['dim'] is None:
+    if args["dim"] is None:
         print(
             f"{col['red']}Unable to calculate variance maps. Dim argument is likely required{col['reset']}"
         )

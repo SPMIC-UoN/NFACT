@@ -242,6 +242,7 @@ def stat_map_args(args) -> dict:
         """,
     )
 
+
 def nfact_stats_splash() -> str:
     """
     Function to return NFACT splash

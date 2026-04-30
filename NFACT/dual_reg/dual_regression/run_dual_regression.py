@@ -137,11 +137,14 @@ def dual_regression_pipeline(
     None
     """
     col = colours()
-    if use_gpu: 
+    if use_gpu:
         try:
             os.environ["CUDA_VISIBLE_DEVICES"] = find_free_gpu_uuid()
         except Exception as e:
-            nprint(f"{col['red']}Cannot find GPU ({e}){col['reset']}: Using CPU", to_flush=True)
+            nprint(
+                f"{col['red']}Cannot find GPU ({e}){col['reset']}: Using CPU",
+                to_flush=True,
+            )
             use_gpu = False
     nprint("-" * 100)
     if not components:
@@ -197,7 +200,6 @@ def dual_regression_pipeline(
         dr_results["normalised_grey"] = normalised["grey_matter"]
 
     nprint(f"{col['pink']}Saving{col['reset']}: Components", to_flush=True)
-    
 
     try:
         save_dual_regression_images(
@@ -220,7 +222,6 @@ def dual_regression_pipeline(
 
 
 if __name__ == "__main__":
-
     os.environ["OMP_NUM_THREADS"] = "1"
     os.environ["MKL_NUM_THREADS"] = "1"
     os.environ["OPENBLAS_NUM_THREADS"] = "1"

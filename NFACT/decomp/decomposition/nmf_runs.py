@@ -18,7 +18,6 @@ except ImportError:
     GPU_NMF = None
 
 
-
 def nmf_gpu_run(
     parameters: dict,
     fdt_matrix: np.ndarray,
