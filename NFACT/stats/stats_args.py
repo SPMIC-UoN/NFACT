@@ -296,6 +296,21 @@ def interpret_args(args):
         help="Path to map to interpret components",
     )
     atlas_args.add_argument(
+        "-l",
+        "--labels",
+        dest="labels",
+        help="""
+        Path to label file. 
+        The label file must be a csv file with the one column called name which is the name 
+        of the label and the other being called number which is the number asocciated with the 
+        label in the atlas.
+        For example:
+        name,number
+        dlpfc,1
+        mpfc,2
+        """,
+    )
+    atlas_args.add_argument(
         "-t",
         "--threshold",
         dest="threshold",
