@@ -21,7 +21,7 @@ def valid_options() -> list:
     list: list[str]
         list of valid options
     """
-    return ["loadings", "statsmap"]
+    return ["loadings", "statsmap", "interpret"]
 
 
 def invalid_options(option: str, avaiable_options: list) -> None:
@@ -65,14 +65,17 @@ def usage_message() -> None:
     """
     print(f"""
     {nfact_stats_splash()}
-NFACT Stats has two sub functions. 
+NFACT Stats has three sub functions. 
     - loadings. Calculates How similar the dual regression is to the group level
     - statsmap. Creates from given component numbers a single map of those components
+    - interpret. Interprets the components given an atlas. 
 
 RUN: 
 nfact_stats loadings --help 
 \tOR:
 nfact_stats statsmap --help
+\tOR:
+nfact_stats interpret --help
 for further info
     """)
     exit(0)
@@ -243,6 +246,68 @@ def stat_map_args(args) -> dict:
     )
 
 
+def interpret_args(args):
+    """
+    Function to interpret arguments
+    given to nfact statsinterpret.
+
+    Parameters
+    ----------
+    args: dict
+        dictionary of arguments
+    Returns
+    -------
+    dict: dictionary of arguments
+    """
+    col = colours()
+    interpret_args = args.add_parser("interpret", help="Interpret components")
+    interpret_args.add_argument(
+        "-O",
+        "--overwrite",
+        dest="overwrite",
+        action="store_true",
+        default=False,
+        help="Overwrites previous file structure",
+    )
+    set_up_args = interpret_args.add_argument_group(
+        f"{col['deep_pink']}Set up options{col['reset']}"
+    )
+
+    set_up_args.add_argument(
+        "-o",
+        "--outdir",
+        dest="outdir",
+        help="Path to output directory",
+    )
+
+    decomp_args = interpret_args.add_argument_group(
+        f"{col['plum']}Decomp options{col['reset']}"
+    )
+    nfact_decomp_folder(decomp_args)
+    algo_arg(decomp_args)
+
+    atlas_args = interpret_args.add_argument_group(
+        f"{col['pink']}Atlas options{col['reset']}"
+    )
+    atlas_args.add_argument(
+        "-m",
+        "--map",
+        dest="map",
+        help="Path to map to interpret components",
+    )
+    atlas_args.add_argument(
+        "-t",
+        "--threshold",
+        dest="threshold",
+        default=2,
+        type=int,
+        help="""
+        Threshold components so that
+        components interpretation is accurate and not noisy. 
+        """,
+    )
+
+
 def nfact_stats_splash() -> str:
     """
     Function to return NFACT splash
@@ -290,6 +355,7 @@ def nfact_stats_modules() -> dict:
     subparsers = args.add_subparsers(dest="command")
     comp_loading_args(subparsers)
     stat_map_args(subparsers)
+    interpret_args(subparsers)
     return args
 
 
