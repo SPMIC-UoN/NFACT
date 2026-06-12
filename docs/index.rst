@@ -47,7 +47,14 @@ create confirguation files.
 
    nfact_pipeline
 
+OHBM 2026 poster
+-----------------
+.. image:: _static/ohbm_2026.png
+   :alt: description
+   :class: spaced-figure
 
+NFACT full pipeline
+--------------------
 .. image:: _static/pipeline.png
    :alt: description
    :class: spaced-figure
