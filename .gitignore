@@ -166,7 +166,5 @@ dev
 dev/*
 nfact_config*.config
 .ruff_cache
-/test_*
-*sif
 AI_plan
 AI_plan/*
