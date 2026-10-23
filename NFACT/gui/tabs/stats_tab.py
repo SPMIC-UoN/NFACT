@@ -113,7 +113,7 @@ class StatsTab(BaseModuleTab):
         subcmd_label = ttk.Label(
             banner_frame,
             text="Subcommand Mode:",
-            style="CardTitle.TLabel",
+            style="BannerTitle.TLabel",
         )
         subcmd_label.grid(row=0, column=0, padx=(0, 12), sticky="w")
 

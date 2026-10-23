@@ -81,7 +81,7 @@ def configure_base_styles(style_engine: ttk.Style, palette: Palette) -> None:
     style_engine.configure(
         "HeaderTitle.TLabel",
         background=palette.bg_surface,
-        foreground=palette.accent_primary,
+        foreground=palette.fg_primary,
         font="NFACTTitle",
     )
     style_engine.configure(
@@ -109,9 +109,21 @@ def configure_base_styles(style_engine: ttk.Style, palette: Palette) -> None:
         font="NFACTSection",
     )
     style_engine.configure(
-        "CardChevron.TLabel",
+        "CardSubtitle.TLabel",
         background=palette.bg_surface_alt,
         foreground=palette.fg_secondary,
+        font="NFACTCaption",
+    )
+    style_engine.configure(
+        "BannerTitle.TLabel",
+        background=palette.bg_surface,
+        foreground=palette.fg_primary,
+        font="NFACTSection",
+    )
+    style_engine.configure(
+        "CardChevron.TLabel",
+        background=palette.bg_surface_alt,
+        foreground=palette.fg_primary,
         font="NFACTBodyBold",
     )
     style_engine.configure(
@@ -123,26 +135,38 @@ def configure_base_styles(style_engine: ttk.Style, palette: Palette) -> None:
     style_engine.configure(
         "Required.TLabel",
         background=palette.bg_surface,
-        foreground=palette.accent_primary,
+        foreground=palette.fg_primary,
         font="NFACTBodyBold",
     )
     style_engine.configure(
         "NavItem.TLabel",
         background=palette.bg_primary,
-        foreground=palette.fg_secondary,
+        foreground=palette.fg_primary,
         font="NFACTBody",
     )
     style_engine.configure(
         "NavItemActive.TLabel",
-        background=palette.bg_primary,
-        foreground=palette.accent_primary,
+        background=palette.accent_primary,
+        foreground="#FFFFFF",
         font="NFACTBodyBold",
+    )
+    style_engine.configure(
+        "NavCli.TLabel",
+        background=palette.bg_primary,
+        foreground=palette.fg_secondary,
+        font="NFACTCaption",
+    )
+    style_engine.configure(
+        "NavCliActive.TLabel",
+        background=palette.accent_primary,
+        foreground="#EBE2FF",
+        font="NFACTCaption",
     )
     style_engine.configure(
         "NavSection.TLabel",
         background=palette.bg_primary,
-        foreground=palette.fg_disabled,
-        font="NFACTCaption",
+        foreground=palette.fg_secondary,
+        font="NFACTBodyBold",
     )
 
     # Status Labels
@@ -186,7 +210,7 @@ def configure_base_styles(style_engine: ttk.Style, palette: Palette) -> None:
         darkcolor=palette.button_bg,
         lightcolor=palette.button_bg,
         relief="flat",
-        padding=(8, 4),
+        padding=(10, 5),
         font="NFACTBodyBold",
     )
     style_engine.map(
@@ -207,14 +231,14 @@ def configure_base_styles(style_engine: ttk.Style, palette: Palette) -> None:
         darkcolor=palette.accent_primary,
         lightcolor=palette.accent_primary,
         relief="flat",
-        padding=(12, 6),
+        padding=(14, 6),
         font="NFACTBodyBold",
     )
     style_engine.map(
         "Accent.TButton",
         background=[
             ("active", palette.accent_hover),
-            ("pressed", palette.accent_secondary),
+            ("pressed", palette.accent_hover),
             ("disabled", palette.border_color),
         ],
         foreground=[("disabled", palette.fg_disabled)],
@@ -228,7 +252,7 @@ def configure_base_styles(style_engine: ttk.Style, palette: Palette) -> None:
         darkcolor=palette.danger_bg,
         lightcolor=palette.danger_bg,
         relief="flat",
-        padding=(12, 6),
+        padding=(14, 6),
         font="NFACTBodyBold",
     )
     style_engine.map(
@@ -244,12 +268,12 @@ def configure_base_styles(style_engine: ttk.Style, palette: Palette) -> None:
     style_engine.configure(
         "Ghost.TButton",
         background=palette.bg_surface,
-        foreground=palette.fg_secondary,
-        bordercolor=palette.bg_surface,
+        foreground=palette.fg_primary,
+        bordercolor=palette.border_color,
         darkcolor=palette.bg_surface,
         lightcolor=palette.bg_surface,
         relief="flat",
-        padding=(6, 4),
+        padding=(8, 5),
         font="NFACTBody",
     )
     style_engine.map(
@@ -267,7 +291,7 @@ def configure_base_styles(style_engine: ttk.Style, palette: Palette) -> None:
         foreground=palette.button_fg,
         bordercolor=palette.border_color,
         relief="flat",
-        padding=(4, 2),
+        padding=(6, 4),
         font="NFACTBodyBold",
     )
     style_engine.map(
@@ -284,7 +308,7 @@ def configure_base_styles(style_engine: ttk.Style, palette: Palette) -> None:
         foreground=palette.button_fg,
         bordercolor=palette.border_color,
         relief="flat",
-        padding=(6, 4),
+        padding=(8, 5),
         font="NFACTBody",
     )
     style_engine.map(

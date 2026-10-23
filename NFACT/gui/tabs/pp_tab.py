@@ -118,7 +118,7 @@ class PPTab(BaseModuleTab):
         preset_label = ttk.Label(
             preset_frame,
             text="Presets:",
-            style="CardTitle.TLabel",
+            style="BannerTitle.TLabel",
         )
         preset_label.pack(side="left", padx=(0, 10))
 

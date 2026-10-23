@@ -133,7 +133,7 @@ class PipelineTab(BaseModuleTab):
         mode_label = ttk.Label(
             mode_card,
             text="Execution Mode:",
-            style="CardTitle.TLabel",
+            style="BannerTitle.TLabel",
         )
         mode_label.grid(row=0, column=0, padx=(4, 12), sticky="w")
 
@@ -284,7 +284,7 @@ class PipelineTab(BaseModuleTab):
             stages=stage_specs,
             on_toggle=self._on_stage_toggled,
             theme_manager=self.theme_manager,
-            height=46,
+            height=56,
         )
         self.stage_flow_bar.grid(row=0, column=0, sticky="ew")
 

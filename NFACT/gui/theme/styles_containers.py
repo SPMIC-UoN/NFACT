@@ -45,17 +45,17 @@ def configure_container_styles(style_engine: ttk.Style, palette: Palette) -> Non
         background=palette.button_bg,
         foreground=palette.fg_secondary,
         bordercolor=palette.border_color,
-        padding=[12, 5],
+        padding=[14, 6],
         font="NFACTBodyBold",
     )
     style_engine.map(
         "TNotebook.Tab",
         background=[
-            ("selected", palette.bg_surface),
+            ("selected", palette.accent_primary),
             ("active", palette.button_hover),
         ],
         foreground=[
-            ("selected", palette.accent_primary),
+            ("selected", "#FFFFFF"),
             ("active", palette.fg_primary),
         ],
         bordercolor=[("selected", palette.accent_primary)],
@@ -80,7 +80,7 @@ def configure_container_styles(style_engine: ttk.Style, palette: Palette) -> Non
         foreground=palette.fg_primary,
         fieldbackground=palette.bg_input,
         bordercolor=palette.border_color,
-        rowheight=24,
+        rowheight=28,
         font="NFACTMonoSmall",
     )
     style_engine.map(

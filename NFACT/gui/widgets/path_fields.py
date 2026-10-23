@@ -5,7 +5,7 @@ Path selector input fields for files, directories, and multi-file collections.
 import os
 import tkinter as tk
 from tkinter import filedialog, font as tkfont, ttk
-from typing import Callable, Optional, Sequence
+from typing import Callable, Optional, Sequence, Union
 
 from NFACT.gui.widgets.field_label import FieldLabel
 
@@ -700,12 +700,12 @@ class MultiPathField(ttk.Frame):
             return []
         return [path_item for path_item in raw_text.split() if path_item]
 
-    def set(self, paths_value: str | list[str]) -> None:
+    def set(self, paths_value: Union[str, list[str]]) -> None:
         """Set paths value.
 
         Parameters
         ------------
-        paths_value: str | list[str]
+        paths_value: Union[str, list[str]]
             Path string or list of path strings.
 
         Returns

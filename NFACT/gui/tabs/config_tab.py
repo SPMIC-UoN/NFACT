@@ -107,7 +107,7 @@ class ConfigTab(BaseModuleTab):
         action_label = ttk.Label(
             banner_frame,
             text="Config Utility Action:",
-            style="CardTitle.TLabel",
+            style="BannerTitle.TLabel",
         )
         action_label.grid(row=0, column=0, padx=(4, 12), sticky="w")
 
@@ -314,6 +314,9 @@ class ConfigTab(BaseModuleTab):
             text_frame,
             height=14,
             font="NFACTMonoSmall",
+            background="#2D1B4E",
+            foreground="#FFFFFF",
+            insertbackground="#FFFFFF",
             wrap="none",
             borderwidth=0,
             highlightthickness=0,
@@ -358,27 +361,24 @@ class ConfigTab(BaseModuleTab):
                 Updates text editor widget colors.
         """
         super().apply_palette(palette_dict)
+        if not hasattr(self, "json_text"):
+            return
         bg_console = (
             palette_dict["bg_console"]
             if "bg_console" in palette_dict
-            else getattr(palette_dict, "bg_console", "#0F0D16")
+            else getattr(palette_dict, "bg_console", "#2D1B4E")
         )
-        fg_primary = (
-            palette_dict["fg_primary"]
-            if "fg_primary" in palette_dict
-            else getattr(palette_dict, "fg_primary", "#F2EFF9")
-        )
-        accent_secondary = (
-            palette_dict["accent_secondary"]
-            if "accent_secondary" in palette_dict
-            else getattr(palette_dict, "accent_secondary", "#9966CC")
+        accent_primary = (
+            palette_dict["accent_primary"]
+            if "accent_primary" in palette_dict
+            else getattr(palette_dict, "accent_primary", "#38186A")
         )
         self.json_text.configure(
             background=bg_console,
-            foreground=fg_primary,
-            insertbackground=fg_primary,
-            selectbackground=accent_secondary,
-            selectforeground=fg_primary,
+            foreground="#FFFFFF",
+            insertbackground="#FFFFFF",
+            selectbackground=accent_primary,
+            selectforeground="#FFFFFF",
         )
 
     def _load_json_file(self) -> None:

@@ -126,8 +126,8 @@ class HoverTooltip:
 
         container_frame = tk.Frame(
             self.tooltip_window,
-            background="#272236",
-            highlightbackground="#332C47",
+            background="#38186A",
+            highlightbackground="#8C77B8",
             highlightthickness=1,
             borderwidth=0,
         )
@@ -137,11 +137,11 @@ class HoverTooltip:
             container_frame,
             text=self.tooltip_text,
             justify="left",
-            background="#272236",
-            foreground="#EEEAF6",
+            background="#38186A",
+            foreground="#FFFFFF",
             font="NFACTCaption",
-            padx=8,
-            pady=4,
+            padx=10,
+            pady=6,
             wraplength=360,
         )
         label_widget.pack()

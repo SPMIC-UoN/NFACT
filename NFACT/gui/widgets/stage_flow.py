@@ -37,7 +37,7 @@ class StageFlowBar(tk.Canvas):
         stages: list[StageSpec],
         on_toggle: Callable[[str, bool], None],
         theme_manager: Optional[Any] = None,
-        height: int = 46,
+        height: int = 56,
     ) -> None:
         """Initialize pipeline stage flow bar.
 
@@ -52,7 +52,7 @@ class StageFlowBar(tk.Canvas):
         theme_manager: Optional[Any]
             ThemeManager for color synchronization. Defaults to None.
         height: int
-            Canvas height in pixels. Defaults to 46.
+            Canvas height in pixels. Defaults to 56.
 
         Returns
         --------
@@ -64,7 +64,7 @@ class StageFlowBar(tk.Canvas):
             height=height,
             highlightthickness=0,
             borderwidth=0,
-            bg="#1F1B2B",
+            bg="#6B5598",
         )
         self.stages = stages
         self.on_toggle = on_toggle
@@ -161,7 +161,7 @@ class StageFlowBar(tk.Canvas):
         bg_surface = (
             palette_tokens["bg_surface"]
             if "bg_surface" in palette_tokens
-            else getattr(palette_tokens, "bg_surface", "#1F1B2B")
+            else getattr(palette_tokens, "bg_surface", "#6B5598")
         )
         self.configure(bg=bg_surface)
         self.redraw()
@@ -184,20 +184,20 @@ class StageFlowBar(tk.Canvas):
         palette = (
             self.theme_manager.get_palette() if self.theme_manager is not None else None
         )
-        accent_color = palette.accent_primary if palette is not None else "#E91E8C"
-        border_color = palette.border_color if palette is not None else "#332C47"
-        bg_surface_alt = palette.bg_surface_alt if palette is not None else "#272236"
-        fg_primary = palette.fg_primary if palette is not None else "#EEEAF6"
-        fg_disabled = palette.fg_disabled if palette is not None else "#5C5470"
-        status_running = palette.status_running if palette is not None else "#AF87FF"
-        status_success = palette.status_success if palette is not None else "#2ECC71"
+        accent_color = palette.accent_primary if palette is not None else "#38186A"
+        border_color = palette.border_color if palette is not None else "#8C77B8"
+        bg_surface_alt = palette.bg_surface_alt if palette is not None else "#5E478A"
+        fg_primary = palette.fg_primary if palette is not None else "#FFFFFF"
+        fg_disabled = palette.fg_disabled if palette is not None else "#C4B5E3"
+        status_running = palette.status_running if palette is not None else "#E2D4FF"
+        status_success = palette.status_success if palette is not None else "#4ADE80"
 
         total_width = float(self.winfo_width())
         total_height = float(self.winfo_height())
         if total_width < 100:
             total_width = 700.0
         if total_height < 20:
-            total_height = 46.0
+            total_height = 56.0
 
         stage_count = len(self.stages)
         if stage_count == 0:
@@ -280,14 +280,14 @@ class StageFlowBar(tk.Canvas):
             title_text = f"{status_icon} {stage.title}"
             self.create_text(
                 center_x,
-                center_y - 7,
+                center_y - 9,
                 text=title_text,
                 fill=text_color,
                 font="NFACTBodyBold",
             )
             self.create_text(
                 center_x,
-                center_y + 9,
+                center_y + 11,
                 text=stage.subtitle,
                 fill=text_color,
                 font="NFACTCaption",

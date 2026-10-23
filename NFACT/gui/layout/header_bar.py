@@ -88,7 +88,7 @@ class HeaderBar(ttk.Frame):
             height=18,
             highlightthickness=0,
             borderwidth=0,
-            bg="#1F1B2B",
+            bg="#6B5598",
         )
         self.logo_canvas.pack(side="left", padx=(0, 6))
         self._draw_diamond_logo()
@@ -175,8 +175,8 @@ class HeaderBar(ttk.Frame):
         palette = (
             self.theme_manager.get_palette() if self.theme_manager is not None else None
         )
-        accent_color = palette.accent_primary if palette is not None else "#E91E8C"
-        bg_surface = palette.bg_surface if palette is not None else "#1F1B2B"
+        accent_color = palette.accent_primary if palette is not None else "#38186A"
+        bg_surface = palette.bg_surface if palette is not None else "#6B5598"
         self.logo_canvas.configure(bg=bg_surface)
         self.logo_canvas.create_polygon(
             9,

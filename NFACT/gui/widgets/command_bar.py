@@ -76,13 +76,13 @@ class CommandBar(ttk.Frame):
             main_row,
             height=2,
             wrap="word",
-            background="#0E0C14",
-            foreground="#EEEAF6",
-            insertbackground="#EEEAF6",
+            background="#2D1B4E",
+            foreground="#FFFFFF",
+            insertbackground="#FFFFFF",
             highlightthickness=1,
-            highlightbackground="#332C47",
+            highlightbackground="#8C77B8",
             borderwidth=0,
-            padx=8,
+            padx=10,
             pady=6,
             font="NFACTMono",
         )
@@ -153,28 +153,20 @@ class CommandBar(ttk.Frame):
             None: None object
                 Configures text tags in-place.
         """
-        palette = (
-            self.theme_manager.get_palette() if self.theme_manager is not None else None
-        )
-        accent_primary = palette.accent_primary if palette is not None else "#E91E8C"
-        accent_tertiary = palette.accent_tertiary if palette is not None else "#AF87FF"
-        fg_primary = palette.fg_primary if palette is not None else "#EEEAF6"
-        fg_secondary = palette.fg_secondary if palette is not None else "#9C93B3"
-
         self.command_text.tag_configure(
-            "cmd_prompt", foreground=fg_secondary, font="NFACTMono"
+            "cmd_prompt", foreground="#C4B5FD", font="NFACTMono"
         )
         self.command_text.tag_configure(
-            "cmd_prog", foreground=accent_primary, font="NFACTMono"
+            "cmd_prog", foreground="#FFFFFF", font="NFACTMono"
         )
         self.command_text.tag_configure(
-            "cmd_flag", foreground=accent_tertiary, font="NFACTMono"
+            "cmd_flag", foreground="#EBE2FF", font="NFACTMono"
         )
         self.command_text.tag_configure(
-            "cmd_val", foreground=fg_primary, font="NFACTMono"
+            "cmd_val", foreground="#FFFFFF", font="NFACTMono"
         )
         self.command_text.tag_configure(
-            "cmd_path", foreground=fg_secondary, font="NFACTMono"
+            "cmd_path", foreground="#E9D5FF", font="NFACTMono"
         )
 
     def set_command(self, command_text: str) -> None:
@@ -354,15 +346,17 @@ class CommandBar(ttk.Frame):
         bg_console = (
             palette_tokens["bg_console"]
             if "bg_console" in palette_tokens
-            else getattr(palette_tokens, "bg_console", "#0E0C14")
+            else getattr(palette_tokens, "bg_console", "#2D1B4E")
         )
         border_color = (
             palette_tokens["border_color"]
             if "border_color" in palette_tokens
-            else getattr(palette_tokens, "border_color", "#332C47")
+            else getattr(palette_tokens, "border_color", "#8C77B8")
         )
         self.command_text.configure(
             background=bg_console,
+            foreground="#FFFFFF",
+            insertbackground="#FFFFFF",
             highlightbackground=border_color,
         )
         self._configure_syntax_tags()

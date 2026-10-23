@@ -59,8 +59,10 @@ class ThemeManager:
                 The calculated scaling factor applied.
         """
         try:
+            if sys.platform == "darwin":
+                return 1.0
             dpi_pixels = float(root_window.winfo_fpixels("1i"))
-            scaling_factor = max(1.0, dpi_pixels / 72.0)
+            scaling_factor = round(max(1.0, dpi_pixels / 72.0), 2)
             root_window.tk.call("tk", "scaling", scaling_factor)
             return scaling_factor
         except Exception:

@@ -49,8 +49,8 @@ class Card(tk.Frame):
         """
         super().__init__(
             parent_container,
-            background="#1F1B2B",
-            highlightbackground="#332C47",
+            background="#6B5598",
+            highlightbackground="#8C77B8",
             highlightthickness=1,
             borderwidth=0,
         )
@@ -63,7 +63,7 @@ class Card(tk.Frame):
         self.columnconfigure(0, weight=1)
 
         # Header strip
-        self.header_frame = ttk.Frame(self, style="CardHeader.TFrame", padding=(10, 6))
+        self.header_frame = ttk.Frame(self, style="CardHeader.TFrame", padding=(12, 8))
         self.header_frame.grid(row=0, column=0, sticky="ew")
         self.header_frame.columnconfigure(1, weight=1)
 
@@ -74,7 +74,6 @@ class Card(tk.Frame):
                 self.header_frame,
                 text=chevron_symbol,
                 style="CardChevron.TLabel",
-                cursor="hand2",
             )
             self.chevron_label.grid(row=0, column=0, padx=(0, 6), sticky="w")
         else:
@@ -85,7 +84,6 @@ class Card(tk.Frame):
             self.header_frame,
             text=self.card_title,
             style="CardTitle.TLabel",
-            cursor="hand2" if self.collapsible else "",
         )
         self.title_label.grid(row=0, column=1, sticky="w")
 
@@ -94,7 +92,7 @@ class Card(tk.Frame):
             self.subtitle_label = ttk.Label(
                 self.header_frame,
                 text=self.card_subtitle,
-                style="Muted.Surface.TLabel",
+                style="CardSubtitle.TLabel",
             )
             self.subtitle_label.grid(row=0, column=2, padx=(8, 0), sticky="w")
 
@@ -233,12 +231,12 @@ class Card(tk.Frame):
         bg_surface = (
             palette_tokens["bg_surface"]
             if "bg_surface" in palette_tokens
-            else getattr(palette_tokens, "bg_surface", "#1F1B2B")
+            else getattr(palette_tokens, "bg_surface", "#6B5598")
         )
         border_color = (
             palette_tokens["border_color"]
             if "border_color" in palette_tokens
-            else getattr(palette_tokens, "border_color", "#332C47")
+            else getattr(palette_tokens, "border_color", "#8C77B8")
         )
         self.configure(
             background=bg_surface,

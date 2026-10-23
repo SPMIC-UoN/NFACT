@@ -96,7 +96,7 @@ class BaseModuleTab(ttk.Frame):
             self,
             highlightthickness=0,
             borderwidth=0,
-            bg="#15131D",
+            bg="#7862A6",
         )
         self.canvas.grid(row=row_offset, column=0, sticky="nsew")
 
@@ -407,7 +407,7 @@ class BaseModuleTab(ttk.Frame):
         bg_primary = (
             palette_dict["bg_primary"]
             if "bg_primary" in palette_dict
-            else getattr(palette_dict, "bg_primary", "#15131D")
+            else getattr(palette_dict, "bg_primary", "#7862A6")
         )
         self.canvas.configure(bg=bg_primary)
 

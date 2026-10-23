@@ -2,6 +2,7 @@
 Scalable system font detection and Tkinter named font configuration.
 """
 
+import sys
 import tkinter as tk
 from tkinter import font as tkfont
 from typing import Optional
@@ -36,35 +37,43 @@ def get_system_scalable_fonts(
         available_families = {}
 
     sans_priority = [
+        "helvetica neue",
+        "avenir next",
+        "sf pro text",
+        "sf pro display",
         "inter",
+        "segoe ui",
         "noto sans",
         "cantarell",
         "liberation sans",
         "dejavu sans",
         "ubuntu",
-        "segoe ui",
-        "sf pro display",
-        "helvetica neue",
+        "helvetica",
         "arial",
     ]
     mono_priority = [
+        "menlo",
+        "sf mono",
         "jetbrains mono",
+        "monaco",
+        "consolas",
         "noto sans mono",
         "liberation mono",
         "dejavu sans mono",
         "ubuntu mono",
-        "consolas",
-        "menlo",
         "courier new",
     ]
 
+    default_sans = "Helvetica Neue" if sys.platform == "darwin" else "Liberation Sans"
+    default_mono = "Menlo" if sys.platform == "darwin" else "Liberation Mono"
+
     detected_sans = next(
         (available_families[key] for key in sans_priority if key in available_families),
-        "Liberation Sans",
+        default_sans,
     )
     detected_mono = next(
         (available_families[key] for key in mono_priority if key in available_families),
-        "Liberation Mono",
+        default_mono,
     )
 
     return (detected_sans, detected_mono)

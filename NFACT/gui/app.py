@@ -158,7 +158,7 @@ class NFACTGuiApp(tk.Tk):
             items=nav_destinations,
             on_select=self._on_sidebar_select,
             theme_manager=self.theme_manager,
-            width=210,
+            width=230,
         )
         self.sidebar.grid(row=0, column=0, sticky="nsew")
 
@@ -237,7 +237,9 @@ class NFACTGuiApp(tk.Tk):
         self.paned_window.add(upper_container, weight=3)
 
         # Lower container: Log console drawer
-        self.log_console = LogConsole(self.paned_window)
+        self.log_console = LogConsole(
+            self.paned_window, theme_manager=self.theme_manager
+        )
         self.paned_window.add(self.log_console, weight=2)
 
     def _on_sidebar_select(self, page_index: int) -> None:

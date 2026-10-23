@@ -193,7 +193,7 @@ def configure_input_styles(style_engine: ttk.Style, palette: Palette) -> None:
         background=palette.button_bg,
         foreground=palette.button_fg,
         font="NFACTBodyBold",
-        padding=(10, 4),
+        padding=(12, 6),
         indicatoron=0,
     )
     style_engine.map(

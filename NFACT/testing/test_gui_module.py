@@ -1,13 +1,19 @@
 """
-Unit tests for NFACT Graphical User Interface components, command builder, and theme engine.
+Unit tests for NFACT Graphical User Interface components, command builder,
+and theme engine.
 """
 
 import os
 import tkinter as tk
 from tkinter import ttk
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import pytest
 
+from NFACT.gui.__main__ import (
+    build_tkinter_missing_message,
+    check_tkinter_availability,
+    nfact_gui_main,
+)
 from NFACT.gui.ansi_parser import AnsiParser, configure_ansi_tags, strip_ansi
 from NFACT.gui.app import NFACTGuiApp
 from NFACT.gui.command_builder import (
@@ -538,13 +544,13 @@ class TestThemeManager:
         """
         manager = ThemeManager(initial_theme="dark")
         dark_pal = manager.get_palette()
-        assert dark_pal["bg_primary"] == "#15131D"
-        assert dark_pal["accent_primary"] == "#E91E8C"
+        assert dark_pal["bg_primary"] == "#7862A6"
+        assert dark_pal["accent_primary"] == "#38186A"
 
         manager.set_theme("light")
         light_pal = manager.get_palette()
-        assert light_pal["bg_primary"] == "#F6F4FA"
-        assert light_pal["accent_primary"] == "#C21868"
+        assert light_pal["bg_primary"] == "#EFEBF7"
+        assert light_pal["accent_primary"] == "#38186A"
 
     def test_theme_toggle_callback(self, tk_root_fixture: tk.Tk) -> None:
         """
@@ -1044,3 +1050,80 @@ class TestNFACTGuiApp:
             assert os.path.exists(initial_dir)
         finally:
             app.destroy()
+
+
+class TestNfactGuiMain:
+    """Test suite for nfact_gui command-line entry point and Tkinter checks."""
+
+    def test_check_tkinter_availability(self) -> None:
+        """Test check_tkinter_availability returns boolean status.
+
+        Parameters
+        ------------
+        None
+
+        Returns
+        --------
+            None: NoneType object
+                Returns None.
+        """
+        status_flag = check_tkinter_availability()
+        assert isinstance(status_flag, bool)
+
+    def test_build_tkinter_missing_message(self) -> None:
+        """Test build_tkinter_missing_message includes platform instructions.
+
+        Parameters
+        ------------
+        None
+
+        Returns
+        --------
+            None: NoneType object
+                Returns None.
+        """
+        darwin_message = build_tkinter_missing_message("darwin")
+        assert "brew install python-tk" in darwin_message
+        assert "nfact --help" in darwin_message
+
+        linux_message = build_tkinter_missing_message("linux")
+        assert "sudo apt-get install python3-tk" in linux_message
+
+        other_message = build_tkinter_missing_message("win32")
+        assert "install Tkinter support" in other_message
+
+    def test_nfact_gui_main_missing_tkinter(self) -> None:
+        """Test nfact_gui_main exits with code 1 when tkinter is missing.
+
+        Parameters
+        ------------
+        None
+
+        Returns
+        --------
+            None: NoneType object
+                Returns None.
+        """
+        with patch("NFACT.gui.__main__.check_tkinter_availability", return_value=False):
+            with pytest.raises(SystemExit) as exit_info:
+                nfact_gui_main(["--theme", "dark"])
+            assert exit_info.value.code == 1
+
+    def test_nfact_gui_main_success(self) -> None:
+        """Test nfact_gui_main launches app when tkinter is available.
+
+        Parameters
+        ------------
+        None
+
+        Returns
+        --------
+            None: NoneType object
+                Returns None.
+        """
+        mock_instance = MagicMock()
+        with patch("NFACT.gui.__main__.check_tkinter_availability", return_value=True):
+            with patch("NFACT.gui.app.NFACTGuiApp", return_value=mock_instance):
+                nfact_gui_main(["--theme", "dark"])
+                mock_instance.mainloop.assert_called_once()
+

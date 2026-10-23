@@ -52,7 +52,6 @@ class ToggleSwitch(tk.Canvas):
             height=height,
             highlightthickness=0,
             borderwidth=0,
-            cursor="hand2",
             takefocus=True,
         )
         self.variable = variable
@@ -60,10 +59,10 @@ class ToggleSwitch(tk.Canvas):
         self.track_height = height
         self.theme_manager = theme_manager
 
-        self.color_on = "#E91E8C"
-        self.color_off = "#332C47"
+        self.color_on = "#38186A"
+        self.color_off = "#4E387A"
         self.color_knob = "#FFFFFF"
-        self.bg_parent = "#1F1B2B"
+        self.bg_parent = "#6B5598"
 
         self.bind("<Button-1>", self._on_click)
         self.bind("<space>", self._on_click)
@@ -122,17 +121,17 @@ class ToggleSwitch(tk.Canvas):
         self.color_on = (
             palette_tokens["accent_primary"]
             if "accent_primary" in palette_tokens
-            else getattr(palette_tokens, "accent_primary", "#E91E8C")
+            else getattr(palette_tokens, "accent_primary", "#38186A")
         )
         self.color_off = (
-            palette_tokens["border_color"]
-            if "border_color" in palette_tokens
-            else getattr(palette_tokens, "border_color", "#332C47")
+            palette_tokens["bg_input"]
+            if "bg_input" in palette_tokens
+            else getattr(palette_tokens, "bg_input", "#4E387A")
         )
         self.bg_parent = (
             palette_tokens["bg_surface"]
             if "bg_surface" in palette_tokens
-            else getattr(palette_tokens, "bg_surface", "#1F1B2B")
+            else getattr(palette_tokens, "bg_surface", "#6B5598")
         )
         self.configure(bg=self.bg_parent)
         self.redraw()

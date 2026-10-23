@@ -7,7 +7,7 @@ import glob
 import os
 import tkinter as tk
 from tkinter import filedialog, ttk
-from typing import Optional
+from typing import Any, Optional
 
 from NFACT.gui.ansi_parser import AnsiParser, configure_ansi_tags
 
@@ -27,20 +27,23 @@ class LogConsole(ttk.Frame):
         self,
         parent_container: tk.Widget,
         style: str = "Surface.TFrame",
+        theme_manager: Optional[Any] = None,
     ) -> None:
-        """
-        Initialize the log console.
+        """Initialize the log console.
 
         Parameters
-        ----------
+        ------------
         parent_container: tk.Widget
             Parent Tkinter widget.
-        style: str, default="Surface.TFrame"
-            ttk frame style name.
+        style: str
+            ttk frame style name. Defaults to "Surface.TFrame".
+        theme_manager: Optional[Any]
+            ThemeManager reference for dynamic updates. Defaults to None.
 
         Returns
-        -------
-        None
+        --------
+            None: None object
+                Constructs console tabs and widgets.
         """
         super().__init__(parent_container, style=style)
 
@@ -48,7 +51,8 @@ class LogConsole(ttk.Frame):
         self.inspector_parser = AnsiParser()
         self.auto_scroll_var = tk.BooleanVar(value=True)
         self.filter_var = tk.StringVar(value="")
-        self.current_palette: dict = {}
+        self.current_palette: Any = {}
+        self.theme_manager = theme_manager
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
@@ -71,6 +75,9 @@ class LogConsole(ttk.Frame):
         self.inspector_tab = ttk.Frame(self.notebook, style="Surface.TFrame")
         self.notebook.add(self.inspector_tab, text=" Saved Log Inspector ")
         self._build_inspector_tab()
+
+        if self.theme_manager is not None:
+            self.theme_manager.register_widget(self, self.apply_palette)
 
     def _build_stream_tab(self) -> None:
         """
@@ -104,7 +111,7 @@ class LogConsole(ttk.Frame):
             stream_toolbar,
             text="Auto-scroll",
             variable=self.auto_scroll_var,
-            style="TCheckbutton",
+            style="Surface.TCheckbutton",
         )
         autoscroll_check.pack(side="left", padx=(0, 8))
 
@@ -142,6 +149,9 @@ class LogConsole(ttk.Frame):
             text_container,
             wrap="none",
             font="NFACTMono",
+            background="#2D1B4E",
+            foreground="#FFFFFF",
+            insertbackground="#FFFFFF",
             state="disabled",
             borderwidth=0,
             highlightthickness=0,
@@ -318,6 +328,9 @@ class LogConsole(ttk.Frame):
             inspector_text_container,
             wrap="none",
             font="NFACTMono",
+            background="#2D1B4E",
+            foreground="#FFFFFF",
+            insertbackground="#FFFFFF",
             state="disabled",
             borderwidth=0,
             highlightthickness=0,
@@ -349,38 +362,48 @@ class LogConsole(ttk.Frame):
 
         self.discovered_logs_dir: Optional[str] = None
 
-    def apply_palette(self, palette_dict: dict) -> None:
-        """
-        Apply theme colors to non-ttk widgets and text tags.
+    def apply_palette(self, palette_dict: Any) -> None:
+        """Apply theme colors to non-ttk widgets and text tags.
 
         Parameters
-        ----------
-        palette_dict: dict
+        ------------
+        palette_dict: Any
             Color palette mapping.
 
         Returns
-        -------
-        None
+        --------
+            None: None object
+                Applies palette to text widgets.
         """
         self.current_palette = palette_dict
+        bg_console = (
+            palette_dict.get("bg_console", "#2D1B4E")
+            if hasattr(palette_dict, "get")
+            else "#2D1B4E"
+        )
+        accent_primary = (
+            palette_dict.get("accent_primary", "#38186A")
+            if hasattr(palette_dict, "get")
+            else "#38186A"
+        )
 
         # Stream text styling
         self.stream_text.configure(
-            background=palette_dict.get("bg_console", "#0F0D16"),
-            foreground=palette_dict.get("fg_primary", "#F2EFF9"),
-            insertbackground=palette_dict.get("fg_primary", "#F2EFF9"),
-            selectbackground=palette_dict.get("accent_secondary", "#9966CC"),
-            selectforeground=palette_dict.get("fg_primary", "#F2EFF9"),
+            background=bg_console,
+            foreground="#FFFFFF",
+            insertbackground="#FFFFFF",
+            selectbackground=accent_primary,
+            selectforeground="#FFFFFF",
         )
         configure_ansi_tags(self.stream_text, palette_dict)
 
         # Inspector text styling
         self.inspector_text.configure(
-            background=palette_dict.get("bg_console", "#0F0D16"),
-            foreground=palette_dict.get("fg_primary", "#F2EFF9"),
-            insertbackground=palette_dict.get("fg_primary", "#F2EFF9"),
-            selectbackground=palette_dict.get("accent_secondary", "#9966CC"),
-            selectforeground=palette_dict.get("fg_primary", "#F2EFF9"),
+            background=bg_console,
+            foreground="#FFFFFF",
+            insertbackground="#FFFFFF",
+            selectbackground=accent_primary,
+            selectforeground="#FFFFFF",
         )
         configure_ansi_tags(self.inspector_text, palette_dict)
 

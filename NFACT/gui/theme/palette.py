@@ -148,17 +148,20 @@ class FontSizes:
     title_pt = sizes.title
     """
 
-    title: int = 16
-    section: int = 11
-    body: int = 10
-    body_bold: int = 10
-    caption: int = 9
-    mono: int = 10
-    mono_small: int = 9
+    title: int = 20
+    section: int = 16
+    body: int = 14
+    body_bold: int = 14
+    caption: int = 12
+    mono: int = 13
+    mono_small: int = 12
 
 
 def dark_palette() -> Palette:
-    """Construct the dark theme palette tokens.
+    """Construct the primary purple theme palette tokens.
+
+    Uses a clean light-purple background with crisp white text and
+    deep dark-purple accents.
 
     Parameters
     ------------
@@ -167,53 +170,53 @@ def dark_palette() -> Palette:
     Returns
     --------
         Palette: palette object
-            Configured dark theme Palette instance.
+            Configured primary theme Palette instance.
     """
     ansi_map = {
-        "ansi_pink": "#E040FB",
-        "ansi_deep_pink": "#FF1493",
-        "ansi_purple": "#8700FF",
-        "ansi_darker_pink": "#AF00FF",
-        "ansi_plum": "#BA68C8",
-        "ansi_amethyst": "#9966CC",
-        "ansi_lav": "#AF87FF",
-        "ansi_light_pink": "#FFAFAF",
-        "ansi_yellow": "#F1C40F",
-        "ansi_cyan": "#00BCD4",
-        "ansi_red": "#FF5252",
-        "ansi_green": "#2ECC71",
+        "ansi_pink": "#D8B4FE",
+        "ansi_deep_pink": "#C084FC",
+        "ansi_purple": "#A855F7",
+        "ansi_darker_pink": "#9333EA",
+        "ansi_plum": "#E9D5FF",
+        "ansi_amethyst": "#C4B5FD",
+        "ansi_lav": "#DDD6FE",
+        "ansi_light_pink": "#F3E8FF",
+        "ansi_yellow": "#FACC15",
+        "ansi_cyan": "#38BDF8",
+        "ansi_red": "#FF6B6B",
+        "ansi_green": "#4ADE80",
     }
     return Palette(
-        bg_primary="#15131D",
-        bg_surface="#1F1B2B",
-        bg_surface_alt="#272236",
-        bg_input="#120F19",
-        bg_console="#0E0C14",
-        fg_primary="#EEEAF6",
-        fg_secondary="#9C93B3",
-        fg_disabled="#5C5470",
-        accent_primary="#E91E8C",
-        accent_hover="#F0479F",
-        accent_secondary="#9966CC",
-        accent_tertiary="#AF87FF",
-        border_color="#332C47",
-        border_focus="#E91E8C",
-        status_success="#2ECC71",
-        status_running="#AF87FF",
-        status_warning="#F1C40F",
-        status_error="#FF5252",
-        button_bg="#2A2539",
-        button_fg="#EEEAF6",
-        button_hover="#363049",
-        danger_bg="#D32F2F",
+        bg_primary="#7862A6",
+        bg_surface="#6B5598",
+        bg_surface_alt="#5E478A",
+        bg_input="#4E387A",
+        bg_console="#2D1B4E",
+        fg_primary="#FFFFFF",
+        fg_secondary="#F3EEFF",
+        fg_disabled="#C4B5E3",
+        accent_primary="#38186A",
+        accent_hover="#2A1052",
+        accent_secondary="#FFFFFF",
+        accent_tertiary="#EBE2FF",
+        border_color="#8C77B8",
+        border_focus="#38186A",
+        status_success="#4ADE80",
+        status_running="#E2D4FF",
+        status_warning="#FACC15",
+        status_error="#FF6B6B",
+        button_bg="#4E387A",
+        button_fg="#FFFFFF",
+        button_hover="#38186A",
+        danger_bg="#C62828",
         danger_fg="#FFFFFF",
-        danger_hover="#B71C1C",
+        danger_hover="#A81F1F",
         ansi=ansi_map,
     )
 
 
 def light_palette() -> Palette:
-    """Construct the light theme palette tokens.
+    """Construct the secondary pale-lavender light theme palette tokens.
 
     Parameters
     ------------
@@ -225,41 +228,41 @@ def light_palette() -> Palette:
             Configured light theme Palette instance.
     """
     ansi_map = {
-        "ansi_pink": "#C2185B",
-        "ansi_deep_pink": "#C21868",
-        "ansi_purple": "#5E35B1",
-        "ansi_darker_pink": "#7B1FA2",
-        "ansi_plum": "#7B1FA2",
-        "ansi_amethyst": "#7B42BC",
-        "ansi_lav": "#5E35B1",
-        "ansi_light_pink": "#8E24AA",
+        "ansi_pink": "#6B21A8",
+        "ansi_deep_pink": "#581C87",
+        "ansi_purple": "#4C1D95",
+        "ansi_darker_pink": "#5B21B6",
+        "ansi_plum": "#6D28D9",
+        "ansi_amethyst": "#7C3AED",
+        "ansi_lav": "#5B21B6",
+        "ansi_light_pink": "#6B21A8",
         "ansi_yellow": "#B7860B",
         "ansi_cyan": "#00838F",
         "ansi_red": "#D32F2F",
         "ansi_green": "#1E9E57",
     }
     return Palette(
-        bg_primary="#F6F4FA",
+        bg_primary="#EFEBF7",
         bg_surface="#FFFFFF",
-        bg_surface_alt="#F1EEF7",
-        bg_input="#FBFAFD",
-        bg_console="#1B1824",
-        fg_primary="#1D1828",
-        fg_secondary="#5F5674",
-        fg_disabled="#A79FB8",
-        accent_primary="#C21868",
-        accent_hover="#A51458",
-        accent_secondary="#7B42BC",
-        accent_tertiary="#5E35B1",
-        border_color="#DDD7E9",
-        border_focus="#C21868",
+        bg_surface_alt="#E5DFF2",
+        bg_input="#F8F6FC",
+        bg_console="#2D1B4E",
+        fg_primary="#1E1433",
+        fg_secondary="#4A3B69",
+        fg_disabled="#9A8EB5",
+        accent_primary="#38186A",
+        accent_hover="#2A1052",
+        accent_secondary="#38186A",
+        accent_tertiary="#4A2580",
+        border_color="#D0C6E6",
+        border_focus="#38186A",
         status_success="#1E9E57",
-        status_running="#6A1B9A",
+        status_running="#4A2580",
         status_warning="#B7860B",
         status_error="#D32F2F",
-        button_bg="#EEEAF5",
-        button_fg="#1D1828",
-        button_hover="#E2DCEE",
+        button_bg="#E2DAF0",
+        button_fg="#1E1433",
+        button_hover="#D2C6E8",
         danger_bg="#C62828",
         danger_fg="#FFFFFF",
         danger_hover="#8E0000",

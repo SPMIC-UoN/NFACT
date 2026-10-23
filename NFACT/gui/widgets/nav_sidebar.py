@@ -37,7 +37,7 @@ class NavSidebar(ttk.Frame):
         on_select: Callable[[int], None],
         theme_manager: Optional[Any] = None,
         style: str = "Sidebar.TFrame",
-        width: int = 210,
+        width: int = 230,
     ) -> None:
         """Initialize navigation sidebar.
 
@@ -54,7 +54,7 @@ class NavSidebar(ttk.Frame):
         style: str
             ttk frame style name. Defaults to "Sidebar.TFrame".
         width: int
-            Fixed pixel width of sidebar. Defaults to 210.
+            Fixed pixel width of sidebar. Defaults to 230.
 
         Returns
         --------
@@ -108,45 +108,46 @@ class NavSidebar(ttk.Frame):
                     column=0,
                     sticky="w",
                     padx=(14, 8),
-                    pady=(12 if grid_row > 0 else 8, 4),
+                    pady=(14 if grid_row > 0 else 10, 4),
                 )
                 grid_row += 1
 
+            is_selected = item_index == 0
+            row_bg = "#38186A" if is_selected else "#7862A6"
+
             row_container = tk.Frame(
                 self,
-                background="#15131D",
-                cursor="hand2",
+                background=row_bg,
             )
             row_container.grid(
-                row=grid_row, column=0, sticky="ew", padx=(4, 4), pady=(1, 1)
+                row=grid_row, column=0, sticky="ew", padx=(6, 6), pady=(2, 2)
             )
             row_container.columnconfigure(1, weight=1)
 
             accent_bar = tk.Frame(
                 row_container,
-                width=3,
-                background="#E91E8C" if item_index == 0 else "#15131D",
+                width=4,
+                background="#38186A" if is_selected else row_bg,
             )
-            accent_bar.grid(row=0, column=0, rowspan=2, sticky="ns", padx=(0, 8))
+            accent_bar.grid(row=0, column=0, rowspan=2, sticky="ns", padx=(0, 10))
 
             title_style = (
-                "NavItemActive.TLabel" if item_index == 0 else "NavItem.TLabel"
+                "NavItemActive.TLabel" if is_selected else "NavItem.TLabel"
             )
             title_lbl = ttk.Label(
                 row_container,
                 text=item.title,
                 style=title_style,
-                cursor="hand2",
             )
-            title_lbl.grid(row=0, column=1, sticky="w", pady=(3, 0))
+            title_lbl.grid(row=0, column=1, sticky="w", pady=(5, 0))
 
+            cli_style = "NavCliActive.TLabel" if is_selected else "NavCli.TLabel"
             cli_lbl = ttk.Label(
                 row_container,
                 text=item.cli_name,
-                style="Muted.TLabel",
-                cursor="hand2",
+                style=cli_style,
             )
-            cli_lbl.grid(row=1, column=1, sticky="w", pady=(0, 3))
+            cli_lbl.grid(row=1, column=1, sticky="w", pady=(0, 5))
 
             self.item_frames.append(row_container)
             self.accent_bars.append(accent_bar)
@@ -161,7 +162,7 @@ class NavSidebar(ttk.Frame):
             grid_row += 1
 
     def _bind_row_events(self, widget_target: tk.Widget, target_index: int) -> None:
-        """Bind click and hover interactions to a navigation widget.
+        """Bind click interactions to a navigation widget.
 
         Parameters
         ------------
@@ -198,18 +199,27 @@ class NavSidebar(ttk.Frame):
         palette = (
             self.theme_manager.get_palette() if self.theme_manager is not None else None
         )
-        accent_color = palette.accent_primary if palette is not None else "#E91E8C"
-        bg_primary = palette.bg_primary if palette is not None else "#15131D"
+        accent_color = palette.accent_primary if palette is not None else "#38186A"
+        bg_primary = palette.bg_primary if palette is not None else "#7862A6"
 
-        for idx, (accent_frame, title_label) in enumerate(
-            zip(self.accent_bars, self.title_labels)
+        for idx, (row_frame, accent_frame, title_label, cli_label) in enumerate(
+            zip(
+                self.item_frames,
+                self.accent_bars,
+                self.title_labels,
+                self.cli_labels,
+            )
         ):
             if idx == target_index:
+                row_frame.configure(background=accent_color)
                 accent_frame.configure(background=accent_color)
                 title_label.configure(style="NavItemActive.TLabel")
+                cli_label.configure(style="NavCliActive.TLabel")
             else:
+                row_frame.configure(background=bg_primary)
                 accent_frame.configure(background=bg_primary)
                 title_label.configure(style="NavItem.TLabel")
+                cli_label.configure(style="NavCli.TLabel")
 
         self.on_select(target_index)
 
@@ -229,19 +239,29 @@ class NavSidebar(ttk.Frame):
         bg_primary = (
             palette_tokens["bg_primary"]
             if "bg_primary" in palette_tokens
-            else getattr(palette_tokens, "bg_primary", "#15131D")
+            else getattr(palette_tokens, "bg_primary", "#7862A6")
         )
         accent_primary = (
             palette_tokens["accent_primary"]
             if "accent_primary" in palette_tokens
-            else getattr(palette_tokens, "accent_primary", "#E91E8C")
+            else getattr(palette_tokens, "accent_primary", "#38186A")
         )
 
-        for idx, (row_frame, accent_frame) in enumerate(
-            zip(self.item_frames, self.accent_bars)
+        for idx, (row_frame, accent_frame, title_label, cli_label) in enumerate(
+            zip(
+                self.item_frames,
+                self.accent_bars,
+                self.title_labels,
+                self.cli_labels,
+            )
         ):
-            row_frame.configure(background=bg_primary)
             if idx == self.selected_index:
+                row_frame.configure(background=accent_primary)
                 accent_frame.configure(background=accent_primary)
+                title_label.configure(style="NavItemActive.TLabel")
+                cli_label.configure(style="NavCliActive.TLabel")
             else:
+                row_frame.configure(background=bg_primary)
                 accent_frame.configure(background=bg_primary)
+                title_label.configure(style="NavItem.TLabel")
+                cli_label.configure(style="NavCli.TLabel")

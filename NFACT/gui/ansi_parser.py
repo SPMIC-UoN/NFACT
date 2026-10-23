@@ -81,31 +81,31 @@ def configure_ansi_tags(text_widget: tk.Text, palette: Any) -> None:
         "ansi_red", foreground=ansi_map.get("ansi_red", status_error)
     )
     text_widget.tag_configure(
-        "ansi_pink", foreground=ansi_map.get("ansi_pink", "#E040FB")
+        "ansi_pink", foreground=ansi_map.get("ansi_pink", "#D8B4FE")
     )
     text_widget.tag_configure(
         "ansi_deep_pink",
-        foreground=ansi_map.get("ansi_deep_pink", "#FF1493"),
+        foreground=ansi_map.get("ansi_deep_pink", "#C084FC"),
     )
     text_widget.tag_configure(
-        "ansi_purple", foreground=ansi_map.get("ansi_purple", "#8700FF")
+        "ansi_purple", foreground=ansi_map.get("ansi_purple", "#A855F7")
     )
     text_widget.tag_configure(
         "ansi_darker_pink",
-        foreground=ansi_map.get("ansi_darker_pink", "#AF00FF"),
+        foreground=ansi_map.get("ansi_darker_pink", "#9333EA"),
     )
     text_widget.tag_configure(
-        "ansi_plum", foreground=ansi_map.get("ansi_plum", "#BA68C8")
+        "ansi_plum", foreground=ansi_map.get("ansi_plum", "#E9D5FF")
     )
     text_widget.tag_configure(
-        "ansi_amethyst", foreground=ansi_map.get("ansi_amethyst", "#9966CC")
+        "ansi_amethyst", foreground=ansi_map.get("ansi_amethyst", "#C4B5FD")
     )
     text_widget.tag_configure(
-        "ansi_lav", foreground=ansi_map.get("ansi_lav", "#AF87FF")
+        "ansi_lav", foreground=ansi_map.get("ansi_lav", "#DDD6FE")
     )
     text_widget.tag_configure(
         "ansi_light_pink",
-        foreground=ansi_map.get("ansi_light_pink", "#FFAFAF"),
+        foreground=ansi_map.get("ansi_light_pink", "#F3E8FF"),
     )
     text_widget.tag_configure(
         "ansi_green", foreground=ansi_map.get("ansi_green", status_success)
