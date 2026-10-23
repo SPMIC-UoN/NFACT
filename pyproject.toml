@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 name = "NFACT"
 version = "0.2"
 description = "NFACT"
-readme = "README.md"
+readme = "README.rst"
 license = { file = "LICENSE" }
 classifiers = [
     "License :: OSI Approved :: MIT License",
@@ -45,3 +45,7 @@ nfact_dr = "NFACT.dual_reg.__main__:nfact_dr_main"
 nfact = "NFACT.pipeline.__main__:nfact_pipeline_main"
 nfact_Qc = "NFACT.qc.__main__:nfactQc_main"
 nfact_stats = "NFACT.stats.__main__:nfactstats_main"
+nfact_gui = "NFACT.gui.__main__:nfact_gui_main"
+
+[tool.setuptools.packages.find]
+include = ["NFACT*"]

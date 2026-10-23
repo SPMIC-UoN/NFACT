@@ -46,6 +46,7 @@ create confirguation files.
    :titlesonly:
 
    nfact_pipeline
+   nfact_gui
 
 OHBM 2026 poster
 -----------------
