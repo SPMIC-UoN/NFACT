@@ -187,10 +187,10 @@ def dark_palette() -> Palette:
         "ansi_green": "#4ADE80",
     }
     return Palette(
-        bg_primary="#7862A6",
-        bg_surface="#6B5598",
-        bg_surface_alt="#5E478A",
-        bg_input="#4E387A",
+        bg_primary="#000000",
+        bg_surface="#000000",
+        bg_surface_alt="#000000",
+        bg_input="#000000",
         bg_console="#2D1B4E",
         fg_primary="#FFFFFF",
         fg_secondary="#F3EEFF",
