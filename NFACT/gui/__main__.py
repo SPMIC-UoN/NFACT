@@ -118,14 +118,17 @@ def nfact_gui_main(arguments_list: Optional[list] = None) -> None:
 
     from NFACT.gui.app import NFACTGuiApp
     from NFACT.gui.gui_args import parse_gui_args
-
-    parsed_dict = parse_gui_args(arguments_list)
-    application_instance = NFACTGuiApp(
-        initial_theme=parsed_dict.get("theme", "dark"),
-        initial_config=parsed_dict.get("config"),
-        initial_workdir=parsed_dict.get("workdir"),
-    )
-    application_instance.mainloop()
+    
+    try:
+        parsed_dict = parse_gui_args(arguments_list)
+        application_instance = NFACTGuiApp(
+            initial_theme=parsed_dict.get("theme", "dark"),
+            initial_config=parsed_dict.get("config"),
+            initial_workdir=parsed_dict.get("workdir"),
+        )
+        application_instance.mainloop()
+    except KeyboardInterrupt:
+        sys.exit(0)
 
 
 if __name__ == "__main__":
